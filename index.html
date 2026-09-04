@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SO 979</title>
+  <style>
+    :root {
+      --bg: #fff8f6;
+      --surface: #ffffff;
+      --surface-soft: #ffe9e3;
+      --border: #e0bfb5;
+      --text: #251914;
+      --muted: #6f5b54;
+      --green: #2e7d32;
+      --green-soft: #c8e6c9;
+      --red: #c62828;
+      --red-soft: #ffcdd2;
+      --blue: #1565c0;
+      --blue-soft: #bbdefb;
+      --yellow-soft: #fff59d;
+      --shadow: 0 3px 12px rgba(40, 20, 15, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      font-size: 12px;
+      padding-bottom: 78px;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #333;
+      min-height: 42px;
+      touch-action: manipulation;
+    }
+
+    button:active { transform: scale(0.98); }
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 248, 246, 0.97);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      padding: 8px 10px;
+      backdrop-filter: blur(6px);
+    }
+
+    .top-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .top-actions button {
+      padding: 8px 5px;
+      line-height: 1.15;
+    }
+
+    .btn-add { background: var(--green-soft); }
+    .btn-reset { background: var(--red-soft); }
+    .btn-stock { background: var(--blue-soft); }
+    .btn-export,
+    .btn-import,
+    .btn-pdf { background: #d1c4e9; }
+
+    .search-container {
+      position: sticky;
+      top: 117px;
+      z-index: 25;
+      padding: 8px 12px;
+      background: rgba(255, 248, 246, 0.97);
+    }
+
+    .search-inner {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #fff9c4;
+      border: 1.5px solid #fdd835;
+      border-radius: 999px;
+      padding: 3px 6px 3px 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-inner input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      padding: 8px 4px;
+      font-size: 14px;
+    }
+
+    .search-clear,
+    .search-icon {
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      border-radius: 50%;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    .header,
+    .item {
+      display: grid;
+      grid-template-columns: 38px 60px minmax(120px, 2.2fr) 54px 54px 62px;
+      align-items: center;
+    }
+
+    .header {
+      position: sticky;
+      top: 174px;
+      z-index: 20;
+      background: var(--surface-soft);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 7px 10px;
+      font-weight: 800;
+    }
+
+    .header > div:nth-child(n+4),
+    .item > div:nth-child(n+4) {
+      text-align: center;
+    }
+
+    .filter-trigger {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .filter-menu {
+      display: none;
+      position: fixed;
+      right: 10px;
+      top: 222px;
+      z-index: 1000;
+      min-width: 145px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .filter-menu.show { display: block; }
+
+    .filter-menu button {
+      display: block;
+      width: 100%;
+      border-radius: 0;
+      background: #fff;
+      text-align: left;
+      padding: 11px 14px;
+      min-height: 40px;
+    }
+
+    .filter-menu button + button {
+      border-top: 1px solid #eee;
+    }
+
+    .list {
+      padding-bottom: 8px;
+    }
+
+    .item {
+      margin: 9px 10px;
+      padding: 11px 8px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .item:active {
+      transform: scale(0.99);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    .item > div {
+      min-width: 0;
+      font-size: 12px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .delete-btn {
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+      padding: 0;
+      border-radius: 9px;
+      color: var(--red);
+      background: #fff0f0;
+      font-size: 15px;
+    }
+
+    .clickable { cursor: pointer; }
+
+    .difference {
+      font-weight: 800;
+    }
+
+    .difference.klop { color: var(--green); }
+    .difference.plus { color: var(--blue); }
+    .difference.minus { color: var(--red); }
+
+    .empty-state {
+      margin: 28px 20px;
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-content {
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--surface);
+      border-radius: 18px 18px 0 0;
+      padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+      text-align: center;
+      animation: sheetUp 0.25s ease;
+    }
+
+    @keyframes sheetUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-content h3 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    .modal-content p {
+      margin: 4px 0;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+      text-align: left;
+    }
+
+    .form-row label {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .form-row input,
+    .qty-input,
+    .stock-input,
+    .calc-display {
+      width: 100%;
+      min-width: 0;
+      height: 48px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+      background: #fff;
+      font-size: 17px;
+    }
+
+    .qty-control {
+      display: grid;
+      grid-template-columns: 52px 1fr 52px;
+      gap: 10px;
+      align-items: center;
+      margin: 14px 0;
+    }
+
+    .qty-control button {
+      height: 52px;
+      font-size: 20px;
+    }
+
+    .qty-minus { background: #ef9a9a; }
+    .qty-plus { background: #a5d6a7; }
+
+    .qty-input {
+      height: 52px;
+      text-align: center;
+      border: 2px solid #4caf50;
+      background: #e8f5e9;
+      box-shadow: 0 0 8px rgba(102, 187, 106, 0.35);
+    }
+
+    .stock-input { text-align: center; }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .modal-btn {
+      min-height: 48px;
+      padding: 10px;
+    }
+
+    .save-btn { background: var(--yellow-soft); border: 2px solid #fbc02d; }
+    .reset-btn { background: #ef9a9a; border: 2px solid #e57373; }
+    .cancel-btn { background: #eceff1; }
+    .primary-btn { background: var(--blue-soft); }
+
+    .calc-fab {
+      position: fixed;
+      left: 12px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      z-index: 100;
+      width: 52px;
+      height: 52px;
+      min-height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #2196f3, #21cbf3);
+      color: #fff;
+      font-size: 15px;
+      line-height: 1.05;
+      box-shadow: 0 5px 14px rgba(33, 150, 243, 0.35);
+    }
+
+    .calc-content {
+      max-width: 360px;
+    }
+
+    .calc-display {
+      margin: 5px 0 12px;
+      text-align: right;
+      font-size: 22px;
+      background: #fafafa;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+    }
+
+    .calc-grid button {
+      aspect-ratio: 1;
+      min-height: 0;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+      font-size: 18px;
+    }
+
+    .calc-grid .danger { background: #f44336; color: #fff; border: 0; }
+    .calc-grid .warning { background: #ff9800; color: #fff; border: 0; }
+    .calc-grid .equal {
+      grid-column: 1 / -1;
+      aspect-ratio: auto;
+      min-height: 48px;
+      border-radius: 12px;
+      background: #00c853;
+      color: #fff;
+      border: 0;
+    }
+
+    .calc-close {
+      width: 100%;
+      margin-top: 10px;
+      background: #d50000;
+      color: #fff;
+    }
+
+    @media (max-width: 420px) {
+      .top-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .search-container { top: 165px; }
+      .header { top: 222px; }
+      .filter-menu { top: 270px; }
+
+      .header,
+      .item {
+        grid-template-columns: 34px 53px minmax(100px, 2fr) 46px 46px 55px;
+      }
+
+      .header,
+      .item {
+        padding-left: 6px;
+        padding-right: 6px;
+      }
+
+      .item > div { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-actions">
+      <button class="btn-add" id="addItemBtn">+ Tambah Item</button>
+      <button class="btn-reset" id="resetAllBtn">Reset Qty & Stock</button>
+      <button class="btn-stock" id="toggleStockBtn">Hide Stock</button>
+      <button class="btn-export" id="exportJsonBtn">Export JSON</button>
+      <button class="btn-import" id="importJsonBtn">Import JSON</button>
+      <button class="btn-pdf" id="exportPdfBtn">Export PDF</button>
+    </div>
+  </header>
+
+  <section class="search-container">
+    <div class="search-inner">
+      <input id="searchInput" type="search" autocomplete="off" placeholder="Cari berdasarkan PLU, barcode, atau nama">
+      <button class="search-clear" id="clearSearchBtn" aria-label="Hapus pencarian">✖</button>
+      <span class="search-icon" aria-hidden="true">🔍</span>
+    </div>
+  </section>
+
+  <div class="header">
+    <div></div>
+    <div>PLU</div>
+    <div>NAMA</div>
+    <div id="stockHeader">STOCK</div>
+    <div>QTY</div>
+    <div class="filter-trigger" id="filterTrigger">SELISIH ▼</div>
+  </div>
+
+  <div class="filter-menu" id="filterMenu">
+    <button data-filter="all">Semua</button>
+    <button data-filter="klop" style="color: var(--green)">Klop</button>
+    <button data-filter="plus" style="color: var(--blue)">Qty +</button>
+    <button data-filter="minus" style="color: var(--red)">Qty -</button>
+  </div>
+
+  <main class="list" id="itemList"></main>
+
+  <button class="calc-fab" id="calcBtn" aria-label="Buka kalkulator">+×<br>÷=</button>
+
+  <!-- MODAL QTY -->
+  <div class="modal" id="qtyModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="qtyItemName">
+      <h3 id="qtyItemName"></h3>
+      <p>PLU: <span id="qtyItemPlu"></span></p>
+      <p id="qtyStockInfo">Stock: <span id="qtyItemStock"></span></p>
+      <p>Qty saat ini: <span id="qtyCurrent"></span></p>
+
+      <div class="qty-control">
+        <button class="qty-minus" id="minusQtyBtn" aria-label="Kurangi input">−</button>
+        <input class="qty-input" id="qtyInput" type="number" inputmode="numeric" min="0" step="1" placeholder="Tambah qty">
+        <button class="qty-plus" id="plusQtyBtn" aria-label="Tambah input">+</button>
+      </div>
+
+      <div class="btn-row">
+        <button class="modal-btn save-btn" id="saveQtyBtn">Simpan</button>
+        <button class="modal-btn reset-btn" id="resetQtyBtn">Reset Qty</button>
+      </div>
+      <button class="modal-btn cancel-btn" id="closeQtyBtn" style="width:100%;margin-top:8px;">Batal</button>
+    </div>
+  </div>
+
+  <!-- MODAL STOCK -->
+  <div class="modal" id="stockModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="stockTitle">
+      <h3 id="stockTitle">Edit Stock</h3>
+      <p id="stockItemName"></p>
+      <input class="stock-input" id="stockInput" type="number" inputmode="numeric" min="0" step="1">
+      <div class="btn-row">
+        <button class="modal-btn primary-btn" id="saveStockBtn">Simpan</button>
+        <button class="modal-btn cancel-btn" id="closeStockBtn">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TAMBAH ITEM -->
+  <div class="modal" id="inputModal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="inputTitle">
+      <h3 id="inputTitle">Tambah Item</h3>
+      <div class="form-row">
+        <label for="itemPlu">PLU</label>
+        <input id="itemPlu" type="tel" inputmode="numeric" placeholder="Masukkan PLU">
+      </div>
+      <div class="form-row">
+        <label for="itemBarcode">Barcode</label>
+        <input id="itemBarcode" type="tel" inputmode="numeric" placeholder="Scan / input barcode">
+      </div>
+      <div class="form-row">
+        <label for="itemName">Nama</label>
+        <input id="itemName" type="text" placeholder="Masukkan nama item">
+      </div>
+      <div class="form-row">
+        <label for="itemStock">Stock</label>
+        <input id="itemStock" type="number" inputmode="numeric" min="0" step="1" placeholder="Masukkan stock awal">
+      </div>
+      <div class="btn-row">
+        <button class="modal-btn primary-btn" id="saveItemBtn">Simpan</button>
+        <button class="modal-btn cancel-btn" id="closeInputBtn">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL KALKULATOR -->
+  <div class="modal" id="calcModal" aria-hidden="true">
+    <div class="modal-content calc-content" role="dialog" aria-modal="true" aria-labelledby="calcTitle">
+      <h3 id="calcTitle">Kalkulator</h3>
+      <input class="calc-display" id="calcDisplay" type="text" readonly>
+      <div class="calc-grid" id="calcGrid">
+        <button data-calc="7">7</button>
+        <button data-calc="8">8</button>
+        <button data-calc="9">9</button>
+        <button data-calc="/">÷</button>
+        <button data-calc="4">4</button>
+        <button data-calc="5">5</button>
+        <button data-calc="6">6</button>
+        <button data-calc="*">×</button>
+        <button data-calc="1">1</button>
+        <button data-calc="2">2</button>
+        <button data-calc="3">3</button>
+        <button data-calc="-">−</button>
+        <button data-calc="0">0</button>
+        <button class="warning" data-action="backspace">⌫</button>
+        <button class="danger" data-action="clear">C</button>
+        <button data-calc="+">+</button>
+        <button class="equal" data-action="calculate">=</button>
+      </div>
+      <button class="calc-close" id="closeCalcBtn">Tutup</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    (() => {
+      'use strict';
+
+      const STORAGE_KEY = 'so_data';
+
+      const el = {
+        addItemBtn: document.getElementById('addItemBtn'),
+        resetAllBtn: document.getElementById('resetAllBtn'),
+        toggleStockBtn: document.getElementById('toggleStockBtn'),
+        exportJsonBtn: document.getElementById('exportJsonBtn'),
+        importJsonBtn: document.getElementById('importJsonBtn'),
+        exportPdfBtn: document.getElementById('exportPdfBtn'),
+        searchInput: document.getElementById('searchInput'),
+        clearSearchBtn: document.getElementById('clearSearchBtn'),
+        stockHeader: document.getElementById('stockHeader'),
+        filterTrigger: document.getElementById('filterTrigger'),
+        filterMenu: document.getElementById('filterMenu'),
+        itemList: document.getElementById('itemList'),
+        calcBtn: document.getElementById('calcBtn'),
+
+        qtyModal: document.getElementById('qtyModal'),
+        qtyItemName: document.getElementById('qtyItemName'),
+        qtyItemPlu: document.getElementById('qtyItemPlu'),
+        qtyStockInfo: document.getElementById('qtyStockInfo'),
+        qtyItemStock: document.getElementById('qtyItemStock'),
+        qtyCurrent: document.getElementById('qtyCurrent'),
+        qtyInput: document.getElementById('qtyInput'),
+        minusQtyBtn: document.getElementById('minusQtyBtn'),
+        plusQtyBtn: document.getElementById('plusQtyBtn'),
+        saveQtyBtn: document.getElementById('saveQtyBtn'),
+        resetQtyBtn: document.getElementById('resetQtyBtn'),
+        closeQtyBtn: document.getElementById('closeQtyBtn'),
+
+        stockModal: document.getElementById('stockModal'),
+        stockItemName: document.getElementById('stockItemName'),
+        stockInput: document.getElementById('stockInput'),
+        saveStockBtn: document.getElementById('saveStockBtn'),
+        closeStockBtn: document.getElementById('closeStockBtn'),
+
+        inputModal: document.getElementById('inputModal'),
+        itemPlu: document.getElementById('itemPlu'),
+        itemBarcode: document.getElementById('itemBarcode'),
+        itemName: document.getElementById('itemName'),
+        itemStock: document.getElementById('itemStock'),
+        saveItemBtn: document.getElementById('saveItemBtn'),
+        closeInputBtn: document.getElementById('closeInputBtn'),
+
+        calcModal: document.getElementById('calcModal'),
+        calcDisplay: document.getElementById('calcDisplay'),
+        calcGrid: document.getElementById('calcGrid'),
+        closeCalcBtn: document.getElementById('closeCalcBtn')
+      };
+
+      let data = loadData();
+      let activeIndex = null;
+      let filterMode = 'all';
+      let showStock = true;
+      let lastScrollY = 0;
+
+      function safeInteger(value, fallback = 0) {
+        const number = Number.parseInt(value, 10);
+        return Number.isFinite(number) ? number : fallback;
+      }
+
+      function normalizeItem(item) {
+        return {
+          plu: String(item?.plu ?? '').replace(/\D/g, ''),
+          barcode: String(item?.barcode ?? '').replace(/\s/g, ''),
+          nama: String(item?.nama ?? '').trim().toUpperCase(),
+          stock: Math.max(0, safeInteger(item?.stock, 0)),
+          qty: Math.max(0, safeInteger(item?.qty, 0))
+        };
+      }
+
+      function loadData() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (!saved) return [];
+          const parsed = JSON.parse(saved);
+          if (!Array.isArray(parsed)) return [];
+          return parsed.map(normalizeItem).filter(item => item.plu && item.nama);
+        } catch (error) {
+          console.error('Gagal membaca data SO:', error);
+          return [];
+        }
+      }
+
+      function saveData() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (error) {
+          console.error('Gagal menyimpan data SO:', error);
+          alert('Data tidak dapat disimpan di perangkat ini.');
+        }
+      }
+
+      function openModal(modal, focusTarget = null) {
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        if (focusTarget) {
+          setTimeout(() => focusTarget.focus(), 50);
+        }
+      }
+
+      function closeModal(modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      function differenceInfo(item) {
+        const difference = item.qty - item.stock;
+        if (difference === 0) return { value: 'KLOP', className: 'klop' };
+        if (difference > 0) return { value: `+${difference}`, className: 'plus' };
+        return { value: String(difference), className: 'minus' };
+      }
+
+      function matchesFilter(item) {
+        const difference = item.qty - item.stock;
+        if (filterMode === 'klop') return difference === 0;
+        if (filterMode === 'plus') return difference > 0;
+        if (filterMode === 'minus') return difference < 0;
+        return true;
+      }
+
+      function matchesSearch(item, key) {
+        if (!key) return true;
+        return item.plu.toLowerCase().includes(key) ||
+          item.barcode.toLowerCase().includes(key) ||
+          item.nama.toLowerCase().includes(key);
+      }
+
+      function render() {
+        const key = el.searchInput.value.trim().toLowerCase();
+        const fragment = document.createDocumentFragment();
+        let visibleCount = 0;
+
+        data.forEach((item, index) => {
+          if (!matchesFilter(item) || !matchesSearch(item, key)) return;
+          visibleCount += 1;
+
+          const difference = differenceInfo(item);
+          const row = document.createElement('div');
+          row.className = 'item';
+
+          const deleteCell = document.createElement('div');
+          const deleteButton = document.createElement('button');
+          deleteButton.className = 'delete-btn';
+          deleteButton.type = 'button';
+          deleteButton.textContent = '✖';
+          deleteButton.title = 'Hapus item';
+          deleteButton.addEventListener('click', event => {
+            event.stopPropagation();
+            deleteItem(index);
+          });
+          deleteCell.appendChild(deleteButton);
+
+          const pluCell = document.createElement('div');
+          pluCell.className = 'clickable';
+          pluCell.textContent = item.plu;
+          pluCell.addEventListener('click', () => openQtyModal(index));
+
+          const nameCell = document.createElement('div');
+          nameCell.className = 'clickable';
+          nameCell.textContent = item.nama;
+          nameCell.addEventListener('click', () => openQtyModal(index));
+
+          const stockCell = document.createElement('div');
+          stockCell.className = showStock ? 'clickable' : '';
+          stockCell.textContent = showStock ? String(item.stock) : '';
+          if (showStock) stockCell.addEventListener('click', () => openStockModal(index));
+
+          const qtyCell = document.createElement('div');
+          qtyCell.className = 'clickable';
+          qtyCell.textContent = String(item.qty);
+          qtyCell.addEventListener('click', () => openQtyModal(index));
+
+          const differenceCell = document.createElement('div');
+          differenceCell.className = `difference ${difference.className}`;
+          differenceCell.textContent = difference.value;
+
+          row.append(deleteCell, pluCell, nameCell, stockCell, qtyCell, differenceCell);
+          fragment.appendChild(row);
+        });
+
+        el.itemList.replaceChildren(fragment);
+
+        if (visibleCount === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty-state';
+          empty.textContent = data.length === 0
+            ? 'Belum ada item. Tekan “+ Tambah Item” untuk mulai.'
+            : 'Tidak ada item yang sesuai dengan pencarian atau filter.';
+          el.itemList.appendChild(empty);
+        }
+      }
+
+      function openQtyModal(index) {
+        activeIndex = index;
+        const item = data[index];
+        lastScrollY = window.scrollY;
+        el.qtyItemName.textContent = item.nama;
+        el.qtyItemPlu.textContent = item.plu;
+        el.qtyItemStock.textContent = String(item.stock);
+        el.qtyCurrent.textContent = String(item.qty);
+        el.qtyStockInfo.style.display = showStock ? 'block' : 'none';
+        el.qtyInput.value = '';
+        openModal(el.qtyModal, el.qtyInput);
+      }
+
+      function saveQty() {
+        if (activeIndex === null || !data[activeIndex]) return;
+        const addition = Math.max(0, safeInteger(el.qtyInput.value, 0));
+        data[activeIndex].qty += addition;
+        saveData();
+        render();
+        closeModal(el.qtyModal);
+        window.scrollTo(0, lastScrollY);
+      }
+
+      function resetQty() {
+        if (activeIndex === null || !data[activeIndex]) return;
+        if (!confirm('Reset qty item ini menjadi 0?')) return;
+        data[activeIndex].qty = 0;
+        saveData();
+        el.qtyCurrent.textContent = '0';
+        render();
+      }
+
+      function changeQtyInput(delta) {
+        const current = Math.max(0, safeInteger(el.qtyInput.value, 0));
+        el.qtyInput.value = String(Math.max(0, current + delta));
+      }
+
+      function openStockModal(index) {
+        if (!showStock) return;
+        activeIndex = index;
+        lastScrollY = window.scrollY;
+        el.stockItemName.textContent = data[index].nama;
+        el.stockInput.value = String(data[index].stock);
+        openModal(el.stockModal, el.stockInput);
+        setTimeout(() => el.stockInput.select(), 60);
+      }
+
+      function saveStock() {
+        if (activeIndex === null || !data[activeIndex]) return;
+        data[activeIndex].stock = Math.max(0, safeInteger(el.stockInput.value, 0));
+        saveData();
+        render();
+        closeModal(el.stockModal);
+        window.scrollTo(0, lastScrollY);
+      }
+
+      function deleteItem(index) {
+        const item = data[index];
+        if (!confirm(`Hapus ${item.nama}?`)) return;
+        data.splice(index, 1);
+        saveData();
+        render();
+      }
+
+      function resetAll() {
+        if (!confirm('Reset seluruh qty dan stock menjadi 0?')) return;
+        data.forEach(item => {
+          item.qty = 0;
+          item.stock = 0;
+        });
+        saveData();
+        render();
+      }
+
+      function toggleStock() {
+        showStock = !showStock;
+        el.toggleStockBtn.textContent = showStock ? 'Hide Stock' : 'Show Stock';
+        el.stockHeader.textContent = showStock ? 'STOCK' : '—';
+        render();
+      }
+
+      function openInputModal() {
+        el.itemPlu.value = '';
+        el.itemBarcode.value = '';
+        el.itemName.value = '';
+        el.itemStock.value = '';
+        openModal(el.inputModal, el.itemPlu);
+      }
+
+      function saveItem() {
+        const plu = el.itemPlu.value.replace(/\D/g, '');
+        const barcode = el.itemBarcode.value.trim();
+        const nama = el.itemName.value.trim().toUpperCase();
+        const stock = Math.max(0, safeInteger(el.itemStock.value, 0));
+
+        if (!plu) {
+          alert('PLU wajib diisi.');
+          el.itemPlu.focus();
+          return;
+        }
+
+        if (!nama) {
+          alert('Nama wajib diisi.');
+          el.itemName.focus();
+          return;
+        }
+
+        const existingIndex = data.findIndex(item => item.plu === plu);
+        if (existingIndex !== -1) {
+          alert('PLU sudah terdaftar. Silakan edit item yang sudah ada.');
+          return;
+        }
+
+        if (barcode && data.some(item => item.barcode && item.barcode === barcode)) {
+          alert('Barcode sudah digunakan oleh item lain.');
+          return;
+        }
+
+        data.push({ plu, barcode, nama, stock, qty: 0 });
+        saveData();
+        render();
+        closeModal(el.inputModal);
+        el.searchInput.value = plu;
+        render();
+      }
+
+      function handleSearchEnter(event) {
+        if (event.key !== 'Enter') return;
+        const key = el.searchInput.value.trim().toLowerCase();
+        if (!key) return;
+
+        const matches = data
+          .map((item, index) => ({ item, index }))
+          .filter(({ item }) => matchesFilter(item) && matchesSearch(item, key));
+
+        if (matches.length === 1) {
+          openQtyModal(matches[0].index);
+          el.searchInput.value = '';
+          render();
+        } else if (matches.length === 0) {
+          alert('Data tidak ditemukan.');
+        }
+      }
+
+      function exportJson() {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'so_data.json';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function importJson() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.addEventListener('change', () => {
+          const file = input.files?.[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = event => {
+            try {
+              const parsed = JSON.parse(String(event.target?.result ?? ''));
+              if (!Array.isArray(parsed)) throw new Error('Format bukan array.');
+
+              const normalized = parsed
+                .map(normalizeItem)
+                .filter(item => item.plu && item.nama);
+
+              const seenPlu = new Set();
+              const valid = [];
+              normalized.forEach(item => {
+                if (!seenPlu.has(item.plu)) {
+                  seenPlu.add(item.plu);
+                  valid.push(item);
+                }
+              });
+
+              if (valid.length === 0 && parsed.length > 0) {
+                throw new Error('Tidak ada item valid.');
+              }
+
+              data = valid;
+              saveData();
+              render();
+              alert(`Import berhasil: ${data.length} item.`);
+            } catch (error) {
+              console.error(error);
+              alert('File JSON tidak valid atau format datanya tidak sesuai.');
+            }
+          };
+          reader.readAsText(file);
+        });
+        input.click();
+      }
+
+      function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function exportPdf() {
+        if (!window.jspdf?.jsPDF) {
+          alert('Library PDF belum termuat. Pastikan perangkat terhubung internet lalu coba lagi.');
+          return;
+        }
+
+        const shift = prompt('Masukkan Shift (contoh: Shift 1 / Shift 2 / Malam)');
+        if (!shift) return;
+
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          const dateText = formatDate(new Date());
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const marginLeft = 10;
+          const marginRight = 10;
+          let y = 12;
+
+          function drawHeader(includeTitle) {
+            if (includeTitle) {
+              doc.setFontSize(14);
+              doc.setTextColor(0, 0, 0);
+              doc.text('REPORT STOCK OPNAME', marginLeft, y);
+              doc.setFontSize(10);
+              doc.text(`Tanggal SO : ${dateText}`, marginLeft, y + 6);
+              doc.text(`Shift      : ${shift}`, marginLeft, y + 12);
+              y += 20;
+            }
+
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+            doc.line(marginLeft, y - 4, pageWidth - marginRight, y - 4);
+            doc.text('PLU', 10, y);
+            doc.text('NAMA', 40, y);
+            doc.text('STOCK', 118, y, { align: 'right' });
+            doc.text('QTY', 143, y, { align: 'right' });
+            doc.text('SELISIH', 181, y, { align: 'center' });
+            doc.line(marginLeft, y + 4, pageWidth - marginRight, y + 4);
+            y += 10;
+          }
+
+          drawHeader(true);
+
+          data.forEach((item, index) => {
+            const nameLines = doc.splitTextToSize(item.nama, 68);
+            const rowHeight = Math.max(8, nameLines.length * 4.2 + 2);
+
+            if (y + rowHeight > 284) {
+              doc.addPage();
+              y = 12;
+              drawHeader(false);
+            }
+
+            if (index % 2 === 0) {
+              doc.setFillColor(245, 245, 245);
+              doc.rect(marginLeft, y - 5, pageWidth - marginLeft - marginRight, rowHeight, 'F');
+            }
+
+            const difference = item.qty - item.stock;
+            const differenceText = difference === 0 ? 'KLOP' : difference > 0 ? `+${difference}` : String(difference);
+
+            doc.setFontSize(8.5);
+            doc.setTextColor(0, 0, 0);
+            doc.text(item.plu, 10, y);
+            doc.text(nameLines, 40, y);
+            doc.text(String(item.stock), 118, y, { align: 'right' });
+            doc.text(String(item.qty), 143, y, { align: 'right' });
+
+            if (difference === 0) doc.setFillColor(200, 255, 200);
+            else if (difference > 0) doc.setFillColor(200, 220, 255);
+            else doc.setFillColor(255, 200, 200);
+
+            doc.rect(168, y - 4, 25, 6, 'F');
+            doc.text(differenceText, 180.5, y, { align: 'center' });
+            y += rowHeight;
+          });
+
+          doc.save(`SO 979 - ${shift} - ${dateText}.pdf`);
+        } catch (error) {
+          console.error(error);
+          alert(`Gagal membuat PDF: ${error.message}`);
+        }
+      }
+
+      function openCalculator() {
+        el.calcDisplay.value = '';
+        openModal(el.calcModal);
+      }
+
+      function calculateExpression() {
+        const expression = el.calcDisplay.value;
+        if (!expression) return;
+
+        if (!/^[0-9+\-*/().\s]+$/.test(expression)) {
+          el.calcDisplay.value = 'error';
+          return;
+        }
+
+        try {
+          const result = Function(`"use strict"; return (${expression})`)();
+          el.calcDisplay.value = Number.isFinite(result) ? String(result) : 'error';
+        } catch {
+          el.calcDisplay.value = 'error';
+        }
+      }
+
+      el.addItemBtn.addEventListener('click', openInputModal);
+      el.resetAllBtn.addEventListener('click', resetAll);
+      el.toggleStockBtn.addEventListener('click', toggleStock);
+      el.exportJsonBtn.addEventListener('click', exportJson);
+      el.importJsonBtn.addEventListener('click', importJson);
+      el.exportPdfBtn.addEventListener('click', exportPdf);
+
+      el.searchInput.addEventListener('input', render);
+      el.searchInput.addEventListener('keydown', handleSearchEnter);
+      el.clearSearchBtn.addEventListener('click', () => {
+        el.searchInput.value = '';
+        render();
+        el.searchInput.focus();
+      });
+
+      el.filterTrigger.addEventListener('click', event => {
+        event.stopPropagation();
+        el.filterMenu.classList.toggle('show');
+      });
+
+      el.filterMenu.addEventListener('click', event => {
+        const button = event.target.closest('button[data-filter]');
+        if (!button) return;
+        filterMode = button.dataset.filter;
+        el.filterMenu.classList.remove('show');
+        render();
+      });
+
+      document.addEventListener('click', event => {
+        if (!el.filterMenu.contains(event.target) && event.target !== el.filterTrigger) {
+          el.filterMenu.classList.remove('show');
+        }
+      });
+
+      el.minusQtyBtn.addEventListener('click', () => changeQtyInput(-1));
+      el.plusQtyBtn.addEventListener('click', () => changeQtyInput(1));
+      el.saveQtyBtn.addEventListener('click', saveQty);
+      el.resetQtyBtn.addEventListener('click', resetQty);
+      el.closeQtyBtn.addEventListener('click', () => closeModal(el.qtyModal));
+
+      el.saveStockBtn.addEventListener('click', saveStock);
+      el.closeStockBtn.addEventListener('click', () => closeModal(el.stockModal));
+
+      el.saveItemBtn.addEventListener('click', saveItem);
+      el.closeInputBtn.addEventListener('click', () => closeModal(el.inputModal));
+
+      el.calcBtn.addEventListener('click', openCalculator);
+      el.closeCalcBtn.addEventListener('click', () => closeModal(el.calcModal));
+      el.calcGrid.addEventListener('click', event => {
+        const button = event.target.closest('button');
+        if (!button) return;
+
+        if (button.dataset.calc) {
+          if (el.calcDisplay.value === 'error') el.calcDisplay.value = '';
+          el.calcDisplay.value += button.dataset.calc;
+          return;
+        }
+
+        if (button.dataset.action === 'clear') el.calcDisplay.value = '';
+        if (button.dataset.action === 'backspace') el.calcDisplay.value = el.calcDisplay.value.slice(0, -1);
+        if (button.dataset.action === 'calculate') calculateExpression();
+      });
+
+      [el.qtyModal, el.stockModal, el.inputModal, el.calcModal].forEach(modal => {
+        modal.addEventListener('click', event => {
+          if (event.target === modal) closeModal(modal);
+        });
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        [el.qtyModal, el.stockModal, el.inputModal, el.calcModal].forEach(modal => {
+          if (modal.classList.contains('show')) closeModal(modal);
+        });
+      });
+
+      window.addEventListener('load', () => {
+        render();
+        el.searchInput.focus();
+      });
+    })();
+  </script>
+</body>
+</html>
