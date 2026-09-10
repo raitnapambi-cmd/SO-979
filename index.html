@@ -599,7 +599,18 @@ button{
   color:#7a3e00;
   border:1px solid #ffb74d;
 }
+#importBtn{
+  background:#b3e5fc;
+  color:#01579b;
+  border:1px solid #81d4fa;
+}
 .top-actions button{min-width:0;font-size:11px;padding:8px 4px;}
+#search{caret-color:#1b5e20;}
+.search-inner.scan-active:focus-within{
+  background:#e8f5e9;
+  border-color:#43a047;
+  box-shadow:0 0 0 3px rgba(67,160,71,.18);
+}
 .header.gudang-view, .item.gudang-item{
   grid-template-columns:70px minmax(0,1fr) 82px;
 }
@@ -634,9 +645,11 @@ button{
 <div class="top-actions">
 <button class="" onclick="openInputModal()">+ Tambah Item</button>
 <button class="" onclick="resetAll()">Reset Qty &amp; Stock</button>
+<button id="importBtn" type="button" onclick="openImport()">⬆ Import</button>
 <button class="" id="toggleBtn" onclick="toggleStock()">Hide Stock</button>
 <button id="markGudangBtn" onclick="markStockGudang()">📦 Mark Gudang</button>
 <button onclick="exportPDF()">Export PDF</button>
+<input id="importFile" type="file" accept=".json,.txt,application/json,text/plain" style="display:none" onchange="importDataFile(event)">
 </div>
 </div>
 <!-- SEARCH -->
@@ -719,6 +732,19 @@ data.forEach(x => {
   x.stockGudang = x.stockGudangQty > 0;
 });
 
+// Referensi elemen penting dibuat eksplisit supaya konsisten di Android/WebView.
+const search = document.getElementById("search");
+const searchInner = document.getElementById("searchInner");
+const clearBtn = document.getElementById("clearBtn");
+const keyboardModeBtn = document.getElementById("keyboardModeBtn");
+const scanModeBtn = document.getElementById("scanModeBtn");
+const list = document.getElementById("list");
+const mainHeader = document.getElementById("mainHeader");
+const modal = document.getElementById("modal");
+const stockModal = document.getElementById("stockModal");
+const gudangModal = document.getElementById("gudangModal");
+const importFile = document.getElementById("importFile");
+
 let filterMode = "all";
 
 function toggleFilter(){
@@ -730,6 +756,82 @@ function setFilter(mode){
   filterMode = mode;
   document.getElementById("selisihFilter").style.display="none";
   render();
+}
+
+function openImport(){
+  importFile.value = "";
+  importFile.click();
+}
+
+function normalisasiImport(raw){
+  const arr = Array.isArray(raw) ? raw :
+              (raw && Array.isArray(raw.data)) ? raw.data :
+              (raw && Array.isArray(raw.items)) ? raw.items : null;
+  if(!arr) throw new Error("Format JSON harus berupa array data atau object dengan field data/items.");
+
+  return arr.map(x => {
+    const plu = String(x.plu ?? x.PLU ?? "").replace(/[^0-9]/g, "");
+    if(!plu) return null;
+    return {
+      plu,
+      barcode: String(x.barcode ?? x.BARCODE ?? ""),
+      nama: String(x.nama ?? x.NAMA ?? x.name ?? "").trim().toUpperCase(),
+      stock: Number.isFinite(Number(x.stock ?? x.STOCK)) ? parseInt(x.stock ?? x.STOCK) : null,
+      qty: Number.isFinite(Number(x.qty ?? x.QTY)) ? parseInt(x.qty ?? x.QTY) : 0
+    };
+  }).filter(Boolean);
+}
+
+function importDataFile(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file){ keepFocus(); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(){
+    try{
+      const raw = JSON.parse(String(reader.result || ""));
+      const masuk = normalisasiImport(raw);
+      if(masuk.length === 0) throw new Error("Tidak ada PLU valid di file.");
+
+      let baru = 0, update = 0;
+      masuk.forEach(x => {
+        const i = data.findIndex(d => String(d.plu) === x.plu);
+        if(i === -1){
+          data.push({
+            plu:x.plu,
+            barcode:x.barcode,
+            nama:x.nama || "ITEM " + x.plu,
+            stock:x.stock ?? 0,
+            qty:x.qty || 0,
+            stockGudang:false,
+            stockGudangQty:0
+          });
+          baru++;
+        }else{
+          // Import berfungsi sebagai merge master data. Hitungan SO/Gudang yang sedang berjalan tidak dihapus.
+          if(x.barcode) data[i].barcode = x.barcode;
+          if(x.nama) data[i].nama = x.nama;
+          if(x.stock !== null && (parseInt(data[i].stock)||0) === 0) data[i].stock = x.stock;
+          update++;
+        }
+      });
+
+      save();
+      render();
+      alert("Import berhasil: " + baru + " item baru, " + update + " item diperbarui. QTY SO dan snapshot Stock Gudang yang sudah ada tetap aman.");
+    }catch(err){
+      alert("Import gagal: " + err.message);
+    }finally{
+      importFile.value = "";
+      keepFocus();
+    }
+  };
+  reader.onerror = function(){
+    alert("File tidak dapat dibaca.");
+    importFile.value = "";
+    keepFocus();
+  };
+  reader.readAsText(file);
 }
 
 function markStockGudang(){
@@ -752,6 +854,7 @@ function markStockGudang(){
 
   save();
   render();
+  keepFocus();
 }
 
 let idx=null;
@@ -789,17 +892,16 @@ function setSearchMode(mode){
   searchInner.classList.toggle("keyboard-active", keyboardMode);
   searchInner.classList.toggle("scan-active", !keyboardMode);
 
-  search.readOnly = !keyboardMode;
+  // Scan tetap editable agar caret/kursor benar-benar aktif. inputmode=none menahan keyboard layar Android.
+  search.readOnly = false;
   search.setAttribute("inputmode", keyboardMode ? "search" : "none");
   search.placeholder = keyboardMode
     ? "Ketik PLU, barcode, atau nama"
     : "Scan PLU / barcode";
 
-  // Fokus langsung dari klik pengguna. Mode scan tidak memunculkan keyboard layar.
-  search.focus({preventScroll:true});
-  if(keyboardMode){
-    try{ search.setSelectionRange(search.value.length, search.value.length); }catch(err){}
-  }
+  // Fokus langsung dan selalu taruh kursor di ujung input.
+  try{ search.focus({preventScroll:true}); }catch(err){ search.focus(); }
+  try{ search.setSelectionRange(search.value.length, search.value.length); }catch(err){}
 }
 
 function save(){ localStorage.setItem("so_data", JSON.stringify(data)); }
@@ -1021,7 +1123,7 @@ function openCalc(){
   calcModal.style.display="flex";
   calcDisplay.value = "";
 }
-function closeCalc(){ calcModal.style.display="none"; }
+function closeCalc(){ calcModal.style.display="none"; keepFocus(); }
 function press(v){ calcDisplay.value+=v; }
 
 
@@ -1048,6 +1150,7 @@ function openInputModal(){
 
 function closeInputModal(){
  inputModal.style.display="none";
+ keepFocus();
 }
 
 function simpanInput(){
@@ -1072,14 +1175,6 @@ function simpanInput(){
  i_stock.value="";
  i_plu.focus();
 }
-
-
-function focusSearch(){
-  search.focus();
-}
-
-
-
 
 
 // FIX SCAN + MODE KEYBOARD
@@ -1164,11 +1259,14 @@ function focusSearch(force){
   }catch(err){
     search.focus();
   }
+  try{ search.setSelectionRange(search.value.length, search.value.length); }catch(err){}
 }
 
 window.onload = function(){
   setSearchMode("scan");
   updateClearButton();
+  requestAnimationFrame(function(){ focusSearch(true); });
+  setTimeout(function(){ focusSearch(true); }, 150);
 };
 
 window.addEventListener("focus", function(){
@@ -1183,9 +1281,11 @@ document.addEventListener("visibilitychange", function(){
 
 // Klik area biasa mengembalikan scanner. Input dan modal tidak diganggu.
 document.addEventListener("click", function(e){
-  if(searchMode !== "scan" || modalSedangTerbuka()) return;
-  if(e.target.closest && e.target.closest("input, button, #selisihFilter")) return;
-  setTimeout(focusSearch, 50);
+  if(searchMode !== "scan") return;
+  if(e.target.closest && e.target.closest("input, #selisihFilter")) return;
+  setTimeout(function(){
+    if(searchMode === "scan" && !modalSedangTerbuka()) focusSearch(true);
+  }, 60);
 });
 
 // Cadangan saat fokus scanner sempat lepas.
@@ -1224,6 +1324,12 @@ function keepFocus(){
   if(searchMode === "scan") setTimeout(function(){ focusSearch(true); }, 120);
 }
 
+// Pengaman Android/PDA: bila fokus scan lepas tanpa modal/input aktif, aktifkan kembali.
+setInterval(function(){
+  if(searchMode !== "scan" || document.visibilityState !== "visible" || modalSedangTerbuka()) return;
+  if(document.activeElement !== search) focusSearch(true);
+}, 900);
+
 
 // DYNAMIC FLOAT BUTTON (CENTER + ADAPT KEYBOARD)
 let calcBtn = null;
@@ -1252,7 +1358,7 @@ function setUp(){
 
 // focus detect
 document.addEventListener("focusin", function(e){
-  if(e.target.tagName === "INPUT"){
+  if(e.target.tagName === "INPUT" && !(e.target === search && searchMode === "scan")){
     setUp();
   }
 });
