@@ -1,1165 +1,1438 @@
 <!DOCTYPE html>
-<html lang="id">
+
+<html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>SO 979</title>
-  <style>
-    :root {
-      --bg: #fff8f6;
-      --surface: #ffffff;
-      --surface-soft: #ffe9e3;
-      --border: #e0bfb5;
-      --text: #251914;
-      --muted: #6f5b54;
-      --green: #2e7d32;
-      --green-soft: #c8e6c9;
-      --red: #c62828;
-      --red-soft: #ffcdd2;
-      --blue: #1565c0;
-      --blue-soft: #bbdefb;
-      --yellow-soft: #fff59d;
-      --shadow: 0 3px 12px rgba(40, 20, 15, 0.08);
-    }
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>SO FULL FINAL (ALL FIXED)</title>
+<style>
+body { font-family: Arial; margin:0; font-size:12px; }
 
-    * { box-sizing: border-box; }
+.top {position:sticky;top:0;background:#fff;padding:10px;border-bottom:2px solid #000;}
+input { padding:10px; margin:5px 0; width:100%; }
 
-    html { scroll-behavior: smooth; }
+.row { display:flex; gap:5px; }
+button { padding:10px; border:none; cursor:pointer; color:#fff; font-weight:bold; }
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, Arial, sans-serif;
-      font-size: 12px;
-      padding-bottom: 78px;
-    }
+.header{
+  font-weight:bold;
+  background:#eee;
+  border-bottom:2px solid #000;
+  display:grid;
+  grid-template-columns: 35px 55px 2.2fr 45px 45px 55px;
+  align-items:center;
+  padding:6px 6px;
+}
+.item {
+  cursor:pointer;
+  display:grid;
+  grid-template-columns: 35px 55px 2.2fr 45px 45px 55px;
+  align-items:center;
 
-    button,
-    input {
-      font: inherit;
-    }
+  margin:6px 10px;
+  padding:10px 8px;
 
-    button {
-      border: 0;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 700;
-      color: #333;
-      min-height: 42px;
-      touch-action: manipulation;
-    }
+  background:#fff;
+  border-radius:12px;
 
-    button:active { transform: scale(0.98); }
+  box-shadow: 
+    0 2px 4px rgba(0,0,0,0.1),
+    0 6px 12px rgba(0,0,0,0.08);
 
-    .top {
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      background: rgba(255, 248, 246, 0.97);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      padding: 8px 10px;
-      backdrop-filter: blur(6px);
-    }
+  transition: all 0.15s ease;
+}
 
-    .top-actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-    }
+.item:nth-child(odd){ background:#f2f2f2; }
+.item:nth-child(even){ background:#fff; }
 
-    .top-actions button {
-      padding: 8px 5px;
-      line-height: 1.15;
-    }
+.top-actions{display:flex; gap:5px; margin-top:5px;}
+.top-actions button{flex:1;}
 
-    .btn-add { background: var(--green-soft); }
-    .btn-reset { background: var(--red-soft); }
-    .btn-stock { background: var(--blue-soft); }
-    .btn-export,
-    .btn-import,
-    .btn-pdf { background: #d1c4e9; }
+.search-box{
+  position:sticky;
+  top:80px;
+  background:#fff;
+  padding:5px 10px;
+}
 
-    .search-container {
-      position: sticky;
-      top: 117px;
-      z-index: 25;
-      padding: 8px 12px;
-      background: rgba(255, 248, 246, 0.97);
-    }
+.search-wrapper{ position:relative; }
 
-    .search-inner {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: #fff9c4;
-      border: 1.5px solid #fdd835;
-      border-radius: 999px;
-      padding: 3px 6px 3px 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
+.clear-btn{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  display:none;
+  font-weight:bold;
+}
 
-    .search-inner input {
-      flex: 1;
-      min-width: 0;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      padding: 8px 4px;
-      font-size: 14px;
-    }
+/* modal */
+.modal {
+ position:fixed; top:0; left:0;
+ z-index:9999;
+ width:100%; height:100%;
+ background:rgba(0,0,0,0.5);
+ display:none; justify-content:center; align-items:center;
+}
+.modal-content {
+ position:relative;
+ z-index:10000;
+ background:#fff; padding:20px;
+ width:95%; max-width:350px;
+ border-radius:10px;
+ text-align:center;
+}
 
-    .search-clear,
-    .search-icon {
-      width: 34px;
-      height: 34px;
-      min-height: 34px;
-      border-radius: 50%;
-      background: transparent;
-      display: grid;
-      place-items: center;
-      padding: 0;
-    }
+.btn-row { display:flex; gap:5px; margin-top:10px; }
+.btn { flex:1; height:50px; }
 
-    .header,
-    .item {
-      display: grid;
-      grid-template-columns: 38px 60px minmax(120px, 2.2fr) 54px 54px 62px;
-      align-items: center;
-    }
+. { background: linear-gradient(45deg,#00c853,#64dd17); }
+. { background: linear-gradient(45deg,#d50000,#ff5252); }
+. { background: linear-gradient(45deg,#2196F3,#21CBF3); }
 
-    .header {
-      position: sticky;
-      top: 174px;
-      z-index: 20;
-      background: var(--surface-soft);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 7px 10px;
-      font-weight: 800;
-    }
 
-    .header > div:nth-child(n+4),
-    .item > div:nth-child(n+4) {
-      text-align: center;
-    }
+button{
+ background:#d1c4e9;
+ color:#333;
+}
+.btn{
+ background:#bbdefb;
+}
+.top-actions button:nth-child(1){background:#c8e6c9;}
+.top-actions button:nth-child(2){background:#ffcdd2;}
+.top-actions button:nth-child(3){background:#bbdefb;}
 
-    .filter-trigger {
-      cursor: pointer;
-      user-select: none;
-    }
 
-    .filter-menu {
-      display: none;
-      position: fixed;
-      right: 10px;
-      top: 222px;
-      z-index: 1000;
-      min-width: 145px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
+.search-container{position:sticky;top:60px;z-index:10;
+  padding:8px 20px;
+}
 
-    .filter-menu.show { display: block; }
+.search-inner{
+  display:flex;
+  align-items:center;
+  background:#fff9c4;
+  border-radius:999px;
+  padding:3px 6px;
+  border:1.5px solid #fdd835;
+}
 
-    .filter-menu button {
-      display: block;
-      width: 100%;
-      border-radius: 0;
-      background: #fff;
-      text-align: left;
-      padding: 11px 14px;
-      min-height: 40px;
-    }
+.search-inner input{
+  flex:1;
+  border:none;
+  background:transparent;
+  outline:none;
+  padding:6px 6px;
+  font-size:14px;
+}
 
-    .filter-menu button + button {
-      border-top: 1px solid #eee;
-    }
+.search-icon{
+  font-size:16px;
+}
 
-    .list {
-      padding-bottom: 8px;
-    }
 
-    .item {
-      margin: 9px 10px;
-      padding: 11px 8px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
+.search-inner input::placeholder{
+  font-size:15px;
+  color:#666;
+  font-weight:500;
+}
 
-    .item:active {
-      transform: scale(0.99);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-    }
 
-    .item > div {
-      min-width: 0;
-      font-size: 12px;
-      line-height: 1.25;
-      overflow-wrap: anywhere;
-    }
 
-    .delete-btn {
-      width: 32px;
-      height: 32px;
-      min-height: 32px;
-      padding: 0;
-      border-radius: 9px;
-      color: var(--red);
-      background: #fff0f0;
-      font-size: 15px;
-    }
 
-    .clickable { cursor: pointer; }
 
-    .difference {
-      font-weight: 800;
-    }
 
-    .difference.klop { color: var(--green); }
-    .difference.plus { color: var(--blue); }
-    .difference.minus { color: var(--red); }
 
-    .empty-state {
-      margin: 28px 20px;
-      padding: 24px 16px;
-      text-align: center;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.75);
-      border: 1px dashed var(--border);
-      border-radius: 16px;
-    }
 
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: rgba(0, 0, 0, 0.5);
-      align-items: flex-end;
-      justify-content: center;
-    }
 
-    .modal.show { display: flex; }
 
-    .modal-content {
-      width: 100%;
-      max-width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
-      background: var(--surface);
-      border-radius: 18px 18px 0 0;
-      padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
-      text-align: center;
-      animation: sheetUp 0.25s ease;
-    }
 
-    @keyframes sheetUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
-    }
 
-    .modal-content h3 {
-      margin: 0 0 8px;
-      font-size: 21px;
-    }
 
-    .modal-content p {
-      margin: 4px 0;
-      font-size: 17px;
-      line-height: 1.35;
-    }
+.search-btn{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 72px 1fr;
-      gap: 10px;
-      align-items: center;
-      margin: 10px 0;
-      text-align: left;
-    }
+.calc-equal{
+  grid-column: span 4;
+  width:100%;
+  height:60px;
+  border-radius:12px;
+  background:#00c853;
+  color:#fff;
+  font-size:20px;
+  font-weight:bold;
+  margin-top:8px;
+}
 
-    .form-row label {
-      font-weight: 700;
-      font-size: 14px;
-    }
+#m_input{
+  background:#e8f5e9;
+  border:2px solid #4CAF50; outline:none;
+  box-shadow:0 0 8px rgba(102,187,106,0.6);
+  border-radius:12px;
+  height:50px;
+  width:100%;
+  box-sizing:border-box;
+  margin:10px 0;
+  text-align:center;
+  font-size:18px;
+}
 
-    .form-row input,
-    .qty-input,
-    .stock-input,
-    .calc-display {
-      width: 100%;
-      min-width: 0;
-      height: 48px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-      outline: none;
-      background: #fff;
-      font-size: 17px;
-    }
+#s_input{
+  text-align:center;
+  font-size:18px;
+}
 
-    .qty-control {
-      display: grid;
-      grid-template-columns: 52px 1fr 52px;
-      gap: 10px;
-      align-items: center;
-      margin: 14px 0;
-    }
+/* BOTTOM SHEET WITHOUT JS CHANGE */
+#modal, #stockModal{
+  align-items:flex-end !important;
+}
 
-    .qty-control button {
-      height: 52px;
-      font-size: 20px;
-    }
+#modal .modal-content, #stockModal .modal-content{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  width:100%;
+  max-width:100%;
+  margin:0;
+  border-radius:16px 16px 0 0;
+  box-sizing:border-box;
+  animation:sheetUp 0.35s ease;
+}
 
-    .qty-minus { background: #ef9a9a; }
-    .qty-plus { background: #a5d6a7; }
+@keyframes sheetUp{
+  from{ transform:translateY(100%); }
+  to{ transform:translateY(0); }
+}
 
-    .qty-input {
-      height: 52px;
-      text-align: center;
-      border: 2px solid #4caf50;
-      background: #e8f5e9;
-      box-shadow: 0 0 8px rgba(102, 187, 106, 0.35);
-    }
 
-    .stock-input { text-align: center; }
+.item:active {
+  transform: scale(0.97);
+  box-shadow: 
+    0 2px 4px rgba(0,0,0,0.08),
+    inset 0 2px 6px rgba(0,0,0,0.1);
+}
+</style>
+<style>
+.calc-container{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.calc-container button{
+  border-radius:50%;
+  background:#ffffff;
+  color:#000;
+  font-weight:bold;
+  font-size:18px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.2);
 
-    .btn-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 12px;
-    }
+  height:50px;
+  border:1px solid #ccc;
+  background:#fff;
+  font-size:16px;
+}
+.calc-display{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border:1px solid #ccc;
+}
 
-    .modal-btn {
-      min-height: 48px;
-      padding: 10px;
-    }
+button{
+ background:#d1c4e9;
+ color:#333;
+}
+.btn{
+ background:#bbdefb;
+}
+.top-actions button:nth-child(1){background:#c8e6c9;}
+.top-actions button:nth-child(2){background:#ffcdd2;}
+.top-actions button:nth-child(3){background:#bbdefb;}
 
-    .save-btn { background: var(--yellow-soft); border: 2px solid #fbc02d; }
-    .reset-btn { background: #ef9a9a; border: 2px solid #e57373; }
-    .cancel-btn { background: #eceff1; }
-    .primary-btn { background: var(--blue-soft); }
 
-    .calc-fab {
-      position: fixed;
-      left: 12px;
-      bottom: max(16px, env(safe-area-inset-bottom));
-      z-index: 100;
-      width: 52px;
-      height: 52px;
-      min-height: 52px;
-      border-radius: 50%;
-      background: linear-gradient(45deg, #2196f3, #21cbf3);
-      color: #fff;
-      font-size: 15px;
-      line-height: 1.05;
-      box-shadow: 0 5px 14px rgba(33, 150, 243, 0.35);
-    }
+.search-container{position:sticky;top:60px;z-index:10;
+  padding:8px 20px;
+}
 
-    .calc-content {
-      max-width: 360px;
-    }
+.search-inner{
+  display:flex;
+  align-items:center;
+  background:#fff9c4;
+  border-radius:999px;
+  padding:3px 6px;
+  border:1.5px solid #fdd835;
+}
 
-    .calc-display {
-      margin: 5px 0 12px;
-      text-align: right;
-      font-size: 22px;
-      background: #fafafa;
-    }
+.search-inner input{
+  flex:1;
+  border:none;
+  background:transparent;
+  outline:none;
+  padding:6px 6px;
+  font-size:14px;
+}
 
-    .calc-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 9px;
-    }
+.search-icon{
+  font-size:16px;
+}
 
-    .calc-grid button {
-      aspect-ratio: 1;
-      min-height: 0;
-      border-radius: 50%;
-      background: #fff;
-      border: 1px solid #ddd;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
-      font-size: 18px;
-    }
 
-    .calc-grid .danger { background: #f44336; color: #fff; border: 0; }
-    .calc-grid .warning { background: #ff9800; color: #fff; border: 0; }
-    .calc-grid .equal {
-      grid-column: 1 / -1;
-      aspect-ratio: auto;
-      min-height: 48px;
-      border-radius: 12px;
-      background: #00c853;
-      color: #fff;
-      border: 0;
-    }
+.search-inner input::placeholder{
+  font-size:15px;
+  color:#666;
+  font-weight:500;
+}
 
-    .calc-close {
-      width: 100%;
-      margin-top: 10px;
-      background: #d50000;
-      color: #fff;
-    }
 
-    @media (max-width: 420px) {
-      .top-actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
 
-      .search-container { top: 165px; }
-      .header { top: 222px; }
-      .filter-menu { top: 270px; }
 
-      .header,
-      .item {
-        grid-template-columns: 34px 53px minmax(100px, 2fr) 46px 46px 55px;
-      }
 
-      .header,
-      .item {
-        padding-left: 6px;
-        padding-right: 6px;
-      }
 
-      .item > div { font-size: 11px; }
-    }
-  </style>
+
+
+
+
+
+
+
+.search-btn{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.calc-equal{
+  grid-column: span 4;
+  width:100%;
+  height:60px;
+  border-radius:12px;
+  background:#00c853;
+  color:#fff;
+  font-size:20px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+#m_input{
+  background:#e8f5e9;
+  border:2px solid #4CAF50; outline:none;
+  box-shadow:0 0 8px rgba(102,187,106,0.6);
+  border-radius:12px;
+  height:50px;
+  width:100%;
+  box-sizing:border-box;
+  margin:10px 0;
+  text-align:center;
+  font-size:18px;
+}
+
+#s_input{
+  text-align:center;
+  font-size:18px;
+}
+</style>
+
+<style>
+.item div { text-align:left; 
+  font-size:12px;
+  line-height:1.2;
+}
+
+.item div:nth-child(1){
+  font-size:11px;
+  color:#d50000;
+  font-weight:bold;
+}
+
+.item div:nth-child(3){ text-align:left;
+  white-space:normal;
+  word-break:break-word;
+  overflow:hidden;
+}
+  white-space:normal;
+  word-break:break-word;
+}
+
+
+.search-btn{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.calc-equal{
+  grid-column: span 4;
+  width:100%;
+  height:60px;
+  border-radius:12px;
+  background:#00c853;
+  color:#fff;
+  font-size:20px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+#m_input{
+  background:#e8f5e9;
+  border:2px solid #4CAF50; outline:none;
+  box-shadow:0 0 8px rgba(102,187,106,0.6);
+  border-radius:12px;
+  height:50px;
+  width:100%;
+  box-sizing:border-box;
+  margin:10px 0;
+  text-align:center;
+  font-size:18px;
+}
+
+#s_input{
+  text-align:center;
+  font-size:18px;
+}
+</style>
+
+
+<style>
+.calc-modal{
+ max-width:350px;
+ width:92%;
+ max-height:85vh;
+ overflow:auto;
+}
+.item div:nth-child(4), .item div:nth-child(5), .item div:nth-child(6){text-align:center;}
+
+.search-btn{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.calc-equal{
+  grid-column: span 4;
+  width:100%;
+  height:60px;
+  border-radius:12px;
+  background:#00c853;
+  color:#fff;
+  font-size:20px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+#m_input{
+  background:#e8f5e9;
+  border:2px solid #4CAF50; outline:none;
+  box-shadow:0 0 8px rgba(102,187,106,0.6);
+  border-radius:12px;
+  height:50px;
+  width:100%;
+  box-sizing:border-box;
+  margin:10px 0;
+  text-align:center;
+  font-size:18px;
+}
+
+#s_input{
+  text-align:center;
+  font-size:18px;
+}
+</style>
+
+
+<style>
+.modal-content p { text-align:center; }
+.modal-content h3 { text-align:center; }
+</style>
+
+
+<style>
+.modal-content p {
+  font-size: 18px;
+  margin: 4px 0;
+  line-height: 1.3;
+}
+.modal-content h3 {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+</style>
+
+
+<style>
+/* SEARCH BAR V2.1: clear kiri, mode keyboard + scan kanan */
+.search-container{
+  position:sticky;
+  top:60px;
+  z-index:10;
+  padding:8px 12px;
+  background:#fff;
+}
+.search-inner{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-height:44px;
+  background:#fff9c4;
+  border:1.5px solid #fdd835;
+  border-radius:14px;
+  padding:4px 5px;
+  box-sizing:border-box;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.search-inner.scan-active{
+  background:#e8f5e9;
+  border-color:#66bb6a;
+  box-shadow:0 0 0 2px rgba(76,175,80,.12);
+}
+.search-inner.keyboard-active{
+  background:#fff9c4;
+  border-color:#fdd835;
+  box-shadow:0 0 0 2px rgba(253,216,53,.12);
+}
+.search-inner input{
+  flex:1;
+  min-width:0;
+  width:auto;
+  height:36px;
+  margin:0;
+  padding:6px 4px;
+  border:none;
+  outline:none;
+  background:transparent;
+  font-size:14px;
+  box-sizing:border-box;
+}
+.search-inner input::placeholder{
+  font-size:13px;
+  color:#666;
+  font-weight:500;
+}
+.search-clear{
+  flex:0 0 32px;
+  width:32px;
+  height:32px;
+  padding:0;
+  margin:0;
+  border-radius:9px;
+  border:1px solid #ef9a9a;
+  background:#ffcdd2;
+  color:#b71c1c;
+  font-size:22px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  visibility:hidden;
+}
+.search-clear.visible{ visibility:visible; }
+.search-mode-group{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.search-mode-btn{
+  height:32px;
+  min-width:34px;
+  padding:0 8px;
+  margin:0;
+  border:1px solid #bdbdbd;
+  border-radius:9px;
+  background:#eeeeee;
+  color:#555;
+  font-size:12px;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.search-mode-btn.active{
+  background:#66bb6a;
+  border-color:#43a047;
+  color:#fff;
+  box-shadow:0 2px 5px rgba(67,160,71,.28);
+}
+#keyboardModeBtn.active{
+  background:#fbc02d;
+  border-color:#f9a825;
+  color:#333;
+  box-shadow:0 2px 5px rgba(249,168,37,.28);
+}
+@media (max-width:380px){
+  .search-container{ padding-left:8px; padding-right:8px; }
+  .search-mode-btn{ min-width:32px; padding:0 6px; }
+  #scanModeBtn{ font-size:11px; }
+  .search-inner input::placeholder{ font-size:12px; }
+}
+</style>
+
+
+<style>
+/* V2.2 - MARK STOCK GUDANG */
+#markGudangBtn{
+  background:#ffcc80;
+  color:#7a3e00;
+  border:1px solid #ffb74d;
+}
+.top-actions button{min-width:0;font-size:11px;padding:8px 4px;}
+.header.gudang-view, .item.gudang-item{
+  grid-template-columns:70px minmax(0,1fr) 82px;
+}
+.header.gudang-view div:nth-child(1),
+.header.gudang-view div:nth-child(2),
+.item.gudang-item div:nth-child(1),
+.item.gudang-item div:nth-child(2){text-align:left;}
+.header.gudang-view div:nth-child(3),
+.item.gudang-item div:nth-child(3){text-align:center;}
+.item.gudang-item{cursor:pointer;}
+#g_input{
+  background:#fff3e0;
+  border:2px solid #ff9800;
+  outline:none;
+  border-radius:12px;
+  height:50px;
+  width:100%;
+  box-sizing:border-box;
+  margin:10px 0;
+  text-align:center;
+  font-size:18px;
+}
+#modal, #stockModal, #gudangModal{align-items:flex-end !important;}
+#gudangModal .modal-content{
+  position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100%;margin:0;
+  border-radius:16px 16px 0 0;box-sizing:border-box;animation:sheetUp .35s ease;
+}
+</style>
 </head>
 <body>
-  <header class="top">
-    <div class="top-actions">
-      <button class="btn-add" id="addItemBtn">+ Tambah Item</button>
-      <button class="btn-reset" id="resetAllBtn">Reset Qty & Stock</button>
-      <button class="btn-stock" id="toggleStockBtn">Hide Stock</button>
-      <button class="btn-export" id="exportJsonBtn">Export JSON</button>
-      <button class="btn-import" id="importJsonBtn">Import JSON</button>
-      <button class="btn-pdf" id="exportPdfBtn">Export PDF</button>
-    </div>
-  </header>
-
-  <section class="search-container">
-    <div class="search-inner">
-      <input id="searchInput" type="search" autocomplete="off" placeholder="Cari berdasarkan PLU, barcode, atau nama">
-      <button class="search-clear" id="clearSearchBtn" aria-label="Hapus pencarian">✖</button>
-      <span class="search-icon" aria-hidden="true">🔍</span>
-    </div>
-  </section>
-
-  <div class="header">
-    <div></div>
-    <div>PLU</div>
-    <div>NAMA</div>
-    <div id="stockHeader">STOCK</div>
-    <div>QTY</div>
-    <div class="filter-trigger" id="filterTrigger">SELISIH ▼</div>
-  </div>
-
-  <div class="filter-menu" id="filterMenu">
-    <button data-filter="all">Semua</button>
-    <button data-filter="klop" style="color: var(--green)">Klop</button>
-    <button data-filter="plus" style="color: var(--blue)">Qty +</button>
-    <button data-filter="minus" style="color: var(--red)">Qty -</button>
-  </div>
-
-  <main class="list" id="itemList"></main>
-
-  <button class="calc-fab" id="calcBtn" aria-label="Buka kalkulator">+×<br>÷=</button>
-
-  <!-- MODAL QTY -->
-  <div class="modal" id="qtyModal" aria-hidden="true">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="qtyItemName">
-      <h3 id="qtyItemName"></h3>
-      <p>PLU: <span id="qtyItemPlu"></span></p>
-      <p id="qtyStockInfo">Stock: <span id="qtyItemStock"></span></p>
-      <p>Qty saat ini: <span id="qtyCurrent"></span></p>
-
-      <div class="qty-control">
-        <button class="qty-minus" id="minusQtyBtn" aria-label="Kurangi input">−</button>
-        <input class="qty-input" id="qtyInput" type="number" inputmode="numeric" min="0" step="1" placeholder="Tambah qty">
-        <button class="qty-plus" id="plusQtyBtn" aria-label="Tambah input">+</button>
-      </div>
-
-      <div class="btn-row">
-        <button class="modal-btn save-btn" id="saveQtyBtn">Simpan</button>
-        <button class="modal-btn reset-btn" id="resetQtyBtn">Reset Qty</button>
-      </div>
-      <button class="modal-btn cancel-btn" id="closeQtyBtn" style="width:100%;margin-top:8px;">Batal</button>
+<div class="top">
+<div class="top-actions">
+<button class="" onclick="openInputModal()">+ Tambah Item</button>
+<button class="" onclick="resetAll()">Reset Qty &amp; Stock</button>
+<button class="" id="toggleBtn" onclick="toggleStock()">Hide Stock</button>
+<button id="markGudangBtn" onclick="markStockGudang()">📦 Mark Gudang</button>
+<button onclick="exportPDF()">Export PDF</button>
+</div>
+</div>
+<!-- SEARCH -->
+<div class="search-container">
+  <div class="search-inner" id="searchInner">
+    <button id="clearBtn" class="search-clear" type="button" onclick="clearSearch()" aria-label="Hapus pencarian" title="Hapus pencarian">×</button>
+    <input id="search" placeholder="Scan PLU / barcode" oninput="handleSearch()" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" readonly>
+    <div class="search-mode-group" aria-label="Mode pencarian">
+      <button id="keyboardModeBtn" class="search-mode-btn" type="button" onclick="setSearchMode('keyboard')" title="Mode keyboard">⌨</button>
+      <button id="scanModeBtn" class="search-mode-btn active" type="button" onclick="setSearchMode('scan')" title="Mode scan">SCAN</button>
     </div>
   </div>
+</div>
+<div class="header" id="mainHeader">
+<div></div><div>PLU</div><div>NAMA</div><div id="stockHeader">STOCK</div><div>QTY</div><div onclick="toggleFilter()" style="cursor:pointer;">SELISIH ▼</div>
+</div>
 
-  <!-- MODAL STOCK -->
-  <div class="modal" id="stockModal" aria-hidden="true">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="stockTitle">
-      <h3 id="stockTitle">Edit Stock</h3>
-      <p id="stockItemName"></p>
-      <input class="stock-input" id="stockInput" type="number" inputmode="numeric" min="0" step="1">
-      <div class="btn-row">
-        <button class="modal-btn primary-btn" id="saveStockBtn">Simpan</button>
-        <button class="modal-btn cancel-btn" id="closeStockBtn">Batal</button>
-      </div>
-    </div>
-  </div>
+<div id="selisihFilter" style="display:none;position:fixed;right:10px;top:120px;background:#fff;border:1px solid #ccc;border-radius:10px;padding:8px;z-index:99999;">
+  <div onclick="setFilter('all')" style="padding:6px;">Semua</div>
+  <div onclick="setFilter('klop')" style="padding:6px;color:green;">Klop</div>
+  <div onclick="setFilter('plus')" style="padding:6px;color:blue;">Qty +</div>
+  <div onclick="setFilter('minus')" style="padding:6px;color:red;">Qty -</div>
+  <div onclick="setFilter('gudang')" style="padding:8px 6px;color:#ef6c00;font-weight:bold;border-top:1px solid #eee;">📦 Stock Gudang</div>
+</div>
 
-  <!-- MODAL TAMBAH ITEM -->
-  <div class="modal" id="inputModal" aria-hidden="true">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="inputTitle">
-      <h3 id="inputTitle">Tambah Item</h3>
-      <div class="form-row">
-        <label for="itemPlu">PLU</label>
-        <input id="itemPlu" type="tel" inputmode="numeric" placeholder="Masukkan PLU">
-      </div>
-      <div class="form-row">
-        <label for="itemBarcode">Barcode</label>
-        <input id="itemBarcode" type="tel" inputmode="numeric" placeholder="Scan / input barcode">
-      </div>
-      <div class="form-row">
-        <label for="itemName">Nama</label>
-        <input id="itemName" type="text" placeholder="Masukkan nama item">
-      </div>
-      <div class="form-row">
-        <label for="itemStock">Stock</label>
-        <input id="itemStock" type="number" inputmode="numeric" min="0" step="1" placeholder="Masukkan stock awal">
-      </div>
-      <div class="btn-row">
-        <button class="modal-btn primary-btn" id="saveItemBtn">Simpan</button>
-        <button class="modal-btn cancel-btn" id="closeInputBtn">Batal</button>
-      </div>
-    </div>
-  </div>
+<div id="list"></div>
+<!-- MODAL QTY -->
+<div class="modal" id="modal">
+<div class="modal-content">
+<h3 id="m_nama"></h3>
+<p>PLU: <span id="m_plu"></span></p>
+<p id="stockInfo">Stock: <span id="m_stock"></span></p>
+<p>Qty: <span id="m_qty"></span></p>
+<div style="display:flex;align-items:center;gap:10px;margin:10px 0;">
+<button onclick="minusQty()" style="width:50px;height:50px;border-radius:12px;background:#ef9a9a;font-size:16px;">-</button>
+<input id="m_input" inputmode="numeric" placeholder="Tambah qty" type="tel" style="flex:1;text-align:center;"/>
+<button onclick="plusQty()" style="width:50px;height:50px;border-radius:12px;background:#a5d6a7;font-size:16px;">+</button>
+</div>
+<div class="btn-row">
+<button class="btn" style="background:#fff59d;color:#333;border:2px solid #fbc02d;border-radius:12px;box-shadow:0 0 8px rgba(251,192,45,0.6);" onclick="simpan()">Simpan</button>
+<button class="btn" style="background:#ef9a9a;color:#333;border:2px solid #e57373;border-radius:12px;box-shadow:0 0 8px rgba(229,115,115,0.6);" onclick="resetQty()">Reset</button>
+</div>
+</div>
+</div>
+<!-- MODAL TAMBAH STOCK GUDANG -->
+<div class="modal" id="gudangModal">
+<div class="modal-content">
+<h3 id="g_nama"></h3>
+<p>PLU: <span id="g_plu"></span></p>
+<p>Qty Stock Gudang: <b id="g_qty"></b></p>
+<div style="display:flex;align-items:center;gap:10px;margin:10px 0;">
+<button onclick="minusGudangInput()" style="width:50px;height:50px;border-radius:12px;background:#ef9a9a;font-size:16px;">-</button>
+<input id="g_input" inputmode="numeric" placeholder="Tambah qty yang tertinggal" type="tel" style="flex:1;text-align:center;"/>
+<button onclick="plusGudangInput()" style="width:50px;height:50px;border-radius:12px;background:#a5d6a7;font-size:16px;">+</button>
+</div>
+<div class="btn-row">
+<button class="btn" onclick="tambahStockGudang()" style="background:#ffcc80;color:#7a3e00;border:2px solid #ffb74d;border-radius:12px;">Tambahkan</button>
+<button class="btn" onclick="closeGudangModal()" style="background:#ef9a9a;color:#333;border:2px solid #e57373;border-radius:12px;">Tutup</button>
+</div>
+</div>
+</div>
+<!-- MODAL STOCK -->
+<div class="modal" id="stockModal">
+<div class="modal-content">
+<h3>Edit Stock</h3>
+<p id="s_nama"></p>
+<input id="s_input" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" type="tel"/>
+<div class="btn-row">
+<button class="btn" onclick="saveStock()">Simpan</button>
+</div>
+</div>
+</div>
+<script>
+let data = JSON.parse(localStorage.getItem("so_data")) || [];
+data.forEach(x => {
+  if(typeof x.stockGudang !== "boolean") x.stockGudang = false;
+  if(typeof x.stockGudangQty !== "number"){
+    x.stockGudangQty = x.stockGudang ? (parseInt(x.qty)||0) : 0;
+  }
+  x.stockGudang = x.stockGudangQty > 0;
+});
 
-  <!-- MODAL KALKULATOR -->
-  <div class="modal" id="calcModal" aria-hidden="true">
-    <div class="modal-content calc-content" role="dialog" aria-modal="true" aria-labelledby="calcTitle">
-      <h3 id="calcTitle">Kalkulator</h3>
-      <input class="calc-display" id="calcDisplay" type="text" readonly>
-      <div class="calc-grid" id="calcGrid">
-        <button data-calc="7">7</button>
-        <button data-calc="8">8</button>
-        <button data-calc="9">9</button>
-        <button data-calc="/">÷</button>
-        <button data-calc="4">4</button>
-        <button data-calc="5">5</button>
-        <button data-calc="6">6</button>
-        <button data-calc="*">×</button>
-        <button data-calc="1">1</button>
-        <button data-calc="2">2</button>
-        <button data-calc="3">3</button>
-        <button data-calc="-">−</button>
-        <button data-calc="0">0</button>
-        <button class="warning" data-action="backspace">⌫</button>
-        <button class="danger" data-action="clear">C</button>
-        <button data-calc="+">+</button>
-        <button class="equal" data-action="calculate">=</button>
-      </div>
-      <button class="calc-close" id="closeCalcBtn">Tutup</button>
-    </div>
-  </div>
+let filterMode = "all";
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-    (() => {
-      'use strict';
+function toggleFilter(){
+  let f = document.getElementById("selisihFilter");
+  f.style.display = f.style.display === "none" ? "block" : "none";
+}
 
-      const STORAGE_KEY = 'so_data';
+function setFilter(mode){
+  filterMode = mode;
+  document.getElementById("selisihFilter").style.display="none";
+  render();
+}
 
-      const el = {
-        addItemBtn: document.getElementById('addItemBtn'),
-        resetAllBtn: document.getElementById('resetAllBtn'),
-        toggleStockBtn: document.getElementById('toggleStockBtn'),
-        exportJsonBtn: document.getElementById('exportJsonBtn'),
-        importJsonBtn: document.getElementById('importJsonBtn'),
-        exportPdfBtn: document.getElementById('exportPdfBtn'),
-        searchInput: document.getElementById('searchInput'),
-        clearSearchBtn: document.getElementById('clearSearchBtn'),
-        stockHeader: document.getElementById('stockHeader'),
-        filterTrigger: document.getElementById('filterTrigger'),
-        filterMenu: document.getElementById('filterMenu'),
-        itemList: document.getElementById('itemList'),
-        calcBtn: document.getElementById('calcBtn'),
+function markStockGudang(){
+  const kandidat = data.filter(x => (parseInt(x.qty)||0) > 0);
+  if(kandidat.length === 0){
+    alert("Belum ada QTY yang diinput. Item dengan QTY 0 tidak akan masuk Stock Gudang.");
+    return;
+  }
 
-        qtyModal: document.getElementById('qtyModal'),
-        qtyItemName: document.getElementById('qtyItemName'),
-        qtyItemPlu: document.getElementById('qtyItemPlu'),
-        qtyStockInfo: document.getElementById('qtyStockInfo'),
-        qtyItemStock: document.getElementById('qtyItemStock'),
-        qtyCurrent: document.getElementById('qtyCurrent'),
-        qtyInput: document.getElementById('qtyInput'),
-        minusQtyBtn: document.getElementById('minusQtyBtn'),
-        plusQtyBtn: document.getElementById('plusQtyBtn'),
-        saveQtyBtn: document.getElementById('saveQtyBtn'),
-        resetQtyBtn: document.getElementById('resetQtyBtn'),
-        closeQtyBtn: document.getElementById('closeQtyBtn'),
+  const pesan = "Mark Stock Gudang sekarang?\n\n" +
+    kandidat.length + " item dengan QTY > 0 akan disimpan sebagai snapshot Stock Gudang.\n" +
+    "Item QTY 0 tidak akan ikut. Jika sebelumnya sudah pernah Mark, snapshot lama akan diperbarui.";
+  if(!confirm(pesan)) return;
 
-        stockModal: document.getElementById('stockModal'),
-        stockItemName: document.getElementById('stockItemName'),
-        stockInput: document.getElementById('stockInput'),
-        saveStockBtn: document.getElementById('saveStockBtn'),
-        closeStockBtn: document.getElementById('closeStockBtn'),
+  data.forEach(x => {
+    const q = parseInt(x.qty)||0;
+    x.stockGudangQty = q > 0 ? q : 0;
+    x.stockGudang = x.stockGudangQty > 0;
+  });
 
-        inputModal: document.getElementById('inputModal'),
-        itemPlu: document.getElementById('itemPlu'),
-        itemBarcode: document.getElementById('itemBarcode'),
-        itemName: document.getElementById('itemName'),
-        itemStock: document.getElementById('itemStock'),
-        saveItemBtn: document.getElementById('saveItemBtn'),
-        closeInputBtn: document.getElementById('closeInputBtn'),
+  save();
+  render();
+}
 
-        calcModal: document.getElementById('calcModal'),
-        calcDisplay: document.getElementById('calcDisplay'),
-        calcGrid: document.getElementById('calcGrid'),
-        closeCalcBtn: document.getElementById('closeCalcBtn')
-      };
+let idx=null;
+let showStock=true;
 
-      let data = loadData();
-      let activeIndex = null;
-      let filterMode = 'all';
-      let showStock = true;
-      let lastScrollY = 0;
+// search
+let searchMode = "scan";
 
-      function safeInteger(value, fallback = 0) {
-        const number = Number.parseInt(value, 10);
-        return Number.isFinite(number) ? number : fallback;
+function updateClearButton(){
+  document.getElementById("clearBtn").classList.toggle("visible", !!search.value);
+}
+
+function handleSearch(){
+  updateClearButton();
+  render();
+}
+
+function clearSearch(){
+  search.value="";
+  updateClearButton();
+  render();
+  if(searchMode === "scan") focusSearch(true);
+  else {
+    search.focus();
+    try{ search.setSelectionRange(0,0); }catch(err){}
+  }
+}
+
+function setSearchMode(mode){
+  searchMode = mode === "keyboard" ? "keyboard" : "scan";
+  const keyboardMode = searchMode === "keyboard";
+
+  keyboardModeBtn.classList.toggle("active", keyboardMode);
+  scanModeBtn.classList.toggle("active", !keyboardMode);
+  searchInner.classList.toggle("keyboard-active", keyboardMode);
+  searchInner.classList.toggle("scan-active", !keyboardMode);
+
+  search.readOnly = !keyboardMode;
+  search.setAttribute("inputmode", keyboardMode ? "search" : "none");
+  search.placeholder = keyboardMode
+    ? "Ketik PLU, barcode, atau nama"
+    : "Scan PLU / barcode";
+
+  // Fokus langsung dari klik pengguna. Mode scan tidak memunculkan keyboard layar.
+  search.focus({preventScroll:true});
+  if(keyboardMode){
+    try{ search.setSelectionRange(search.value.length, search.value.length); }catch(err){}
+  }
+}
+
+function save(){ localStorage.setItem("so_data", JSON.stringify(data)); }
+
+function tambah(){
+ let p=plu.value.replace(/[^0-9]/g,'');
+ let n=nama.value;
+ let s=parseInt(stock.value)||0;
+ if(!p) return alert("PLU wajib");
+
+ let i=data.findIndex(x=>x.plu===p);
+ if(i!==-1){ data[i].qty+=1; }
+ else{ if(!n) return alert("Nama wajib");
+ data.push({plu:p,barcode:i_barcode.value||"",nama:n,stock:parseInt(i_stock.value)||0,qty:0,stockGudang:false,stockGudangQty:0}); }
+
+ save(); render();
+ plu.value=""; nama.value=""; stock.value="";
+}
+
+function resetAll(){
+ if(confirm("Reset semua?")){
+  data.forEach(x=>{x.qty=0;x.stock=0;x.stockGudang=false;x.stockGudangQty=0});
+  save(); render();
+ }
+}
+
+function toggleStock(){
+ showStock=!showStock;
+ toggleBtn.innerText = showStock ? "Hide Stock":"Show Stock";
+ const sh = document.getElementById("stockHeader");
+ if(sh) sh.innerText = showStock ? "Stock":"-";
+ document.getElementById("stockInfo").style.display = showStock ? "block":"none";
+ render();
+}
+
+function openModal(i){
+ idx=i;
+ modal.style.display="flex";
+ m_nama.innerText=data[i].nama;
+ m_plu.innerText=data[i].plu;
+ m_stock.innerText=data[i].stock;
+ m_qty.innerText=data[i].qty;
+ m_input.value="";
+ m_input.focus();
+}
+
+let lastScroll=0;
+function simpan(){ lastScroll=window.scrollY;
+ let v=parseInt(m_input.value)||0;
+ data[idx].qty+=v;
+ save(); render();
+ modal.style.display="none"; window.scrollTo(0,lastScroll); keepFocus();
+}
+
+function openGudangModal(i){
+ idx=i;
+ gudangModal.style.display="flex";
+ g_nama.innerText=data[i].nama;
+ g_plu.innerText=data[i].plu;
+ g_qty.innerText=parseInt(data[i].stockGudangQty)||0;
+ g_input.value="";
+ g_input.focus();
+}
+
+function closeGudangModal(){
+ gudangModal.style.display="none";
+ keepFocus();
+}
+
+function tambahStockGudang(){
+ lastScroll=window.scrollY;
+ let v=parseInt(g_input.value)||0;
+ if(v <= 0) return alert("Masukkan qty tambahan lebih dari 0");
+
+ data[idx].stockGudangQty=(parseInt(data[idx].stockGudangQty)||0)+v;
+ data[idx].stockGudang=true;
+ // Qty gudang yang tertinggal juga bagian dari total QTY SO.
+ data[idx].qty=(parseInt(data[idx].qty)||0)+v;
+
+ save();
+ render();
+ gudangModal.style.display="none";
+ window.scrollTo(0,lastScroll);
+ keepFocus();
+}
+
+function plusGudangInput(){
+ let val=parseInt(g_input.value);
+ if(isNaN(val)) val=0;
+ g_input.value=val+1;
+}
+
+function minusGudangInput(){
+ let val=parseInt(g_input.value);
+ if(isNaN(val)) val=0;
+ val=Math.max(0,val-1);
+ g_input.value=val;
+}
+
+function resetQty(){ if(!confirm("Apakah kamu mau benar reset qty?")) return;
+ data[idx].qty=0;
+ save(); render();
+ m_qty.innerText=data[idx].qty;
+}
+
+function clickStock(i){
+ idx=i;
+ stockModal.style.display="flex";
+ s_nama.innerText=data[i].nama;
+ s_input.value=data[i].stock;
+
+ // Dipanggil langsung dari klik pengguna agar keyboard angka PDA terbuka.
+ s_input.focus();
+ try{ s_input.select(); }catch(err){}
+
+ // Penguat setelah modal selesai digambar.
+ requestAnimationFrame(function(){
+   s_input.focus();
+   try{ s_input.select(); }catch(err){}
+ });
+}
+
+function saveStock(){ lastScroll=window.scrollY;
+ let v=parseInt(s_input.value)||0;
+ data[idx].stock=v;
+ save(); render();
+ stockModal.style.display="none"; window.scrollTo(0,lastScroll); keepFocus();
+}
+
+s_input.addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    e.preventDefault();
+    saveStock();
+  }
+});
+
+g_input.addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    e.preventDefault();
+    tambahStockGudang();
+  }
+});
+
+function hapus(i){
+ if(confirm("Hapus?")){
+  data.splice(i,1);
+  save(); render();
+ }
+}
+
+function render(){
+ let key = (search.value || "").toLowerCase();
+ let html="";
+ const gudangView = filterMode === "gudang";
+
+ if(gudangView){
+   mainHeader.classList.add("gudang-view");
+   mainHeader.innerHTML = `
+     <div>PLU</div>
+     <div>NAMA</div>
+     <div onclick="toggleFilter()" style="cursor:pointer;">QTY STOCK ▼</div>`;
+ }else{
+   mainHeader.classList.remove("gudang-view");
+   mainHeader.innerHTML = `
+     <div></div><div>PLU</div><div>NAMA</div>
+     <div id="stockHeader">${showStock ? "STOCK" : "-"}</div>
+     <div>QTY</div>
+     <div onclick="toggleFilter()" style="cursor:pointer;">SELISIH ▼</div>`;
+ }
+
+ data.forEach((x,i)=>{
+  let plu = (x.plu||"").toString();
+  let barcode = (x.barcode||"").toString();
+  let nama = (x.nama||"").toLowerCase();
+  let gudangQty = parseInt(x.stockGudangQty)||0;
+
+  let selisih = x.qty - x.stock;
+  let lolosFilter = (
+    filterMode==="all" ||
+    (filterMode==="klop" && selisih===0) ||
+    (filterMode==="plus" && selisih>0) ||
+    (filterMode==="minus" && selisih<0) ||
+    (filterMode==="gudang" && gudangQty>0)
+  );
+
+  if(lolosFilter && (
+    plu.includes(key) ||
+    barcode.includes(key) ||
+    nama.includes(key)
+  )){
+    if(gudangView){
+      html+=`
+      <div class="item gudang-item" onclick="openGudangModal(${i})">
+        <div>${x.plu}</div>
+        <div>${x.nama}</div>
+        <div style="font-weight:bold;color:#ef6c00;">${gudangQty}</div>
+      </div>`;
+    }else{
+      html+=`
+      <div class="item">
+        <div onclick="event.stopPropagation();hapus(${i})" style="color:#d50000;font-weight:bold;">❌</div>
+        <div onclick="openModal(${i})">${x.plu}</div>
+        <div onclick="openModal(${i})">${gudangQty>0 ? "📦 " : ""}${x.nama}</div>
+        <div onclick="clickStock(${i})">${showStock ? x.stock : ''}</div>
+        <div onclick="openModal(${i})">${x.qty}</div>
+        <div style="color:${(x.qty-x.stock)==0?"green":(x.qty-x.stock)<0?"red":"blue"};font-weight:bold;">
+          ${(x.qty-x.stock)==0?"KLOP":(x.qty-x.stock)>0?"+"+(x.qty-x.stock):(x.qty-x.stock)}
+        </div>
+      </div>`;
+    }
+  }
+ });
+ list.innerHTML=html;
+}
+render();
+
+// CALC
+function openCalc(){
+  calcModal.style.display="flex";
+  calcDisplay.value = "";
+}
+function closeCalc(){ calcModal.style.display="none"; }
+function press(v){ calcDisplay.value+=v; }
+
+
+function clearCalc(){
+ calcDisplay.value="";
+}
+
+function backspace(){
+
+ calcDisplay.value = calcDisplay.value.slice(0,-1);
+}
+
+function calculate(){
+
+ try{ calcDisplay.value=eval(calcDisplay.value); }
+ catch{ calcDisplay.value="error"; }
+}
+
+
+function openInputModal(){
+ inputModal.style.display="flex";
+ i_plu.focus();
+}
+
+function closeInputModal(){
+ inputModal.style.display="none";
+}
+
+function simpanInput(){
+ let p=i_plu.value.replace(/[^0-9]/g,'');
+ let n=i_nama.value.toUpperCase();
+ let s=0;
+
+ if(!p) return alert("PLU wajib");
+ if(!n) return alert("Nama wajib");
+
+ let i=data.findIndex(x=>x.plu===p);
+ if(i!==-1){
+   data[i].qty+=1;
+ }else{
+   data.push({plu:p,barcode:i_barcode.value||"",nama:n,stock:parseInt(i_stock.value)||0,qty:0,stockGudang:false,stockGudangQty:0});
+ }
+
+ save(); render();
+
+ i_plu.value="";
+ i_nama.value="";
+ i_stock.value="";
+ i_plu.focus();
+}
+
+
+function focusSearch(){
+  search.focus();
+}
+
+
+
+
+
+// FIX SCAN + MODE KEYBOARD
+
+function prosesScan(){
+  let key = search.value.trim();
+  if(!key) return;
+
+  let index = data.findIndex(x =>
+    String(x.plu || "") === key ||
+    String(x.barcode || "") === key ||
+    String(x.nama || "").toLowerCase() === key.toLowerCase()
+  );
+
+  search.value = "";
+  updateClearButton();
+  render();
+
+  if(index !== -1){
+    openModal(index);
+  }else{
+    alert("Data tidak ditemukan");
+    keepFocus();
+  }
+}
+
+// Di mode scan input dibuat readonly agar keyboard layar tidak muncul.
+// Karakter dari scanner tetap ditangkap manual di sini.
+let waktuTombolScanner = 0;
+search.addEventListener("keydown", function(e){
+  if(e.ctrlKey || e.altKey || e.metaKey) return;
+
+  if(e.key === "Enter" || e.key === "Tab"){
+    e.preventDefault();
+    prosesScan();
+    return;
+  }
+
+  if(searchMode === "scan"){
+    if(e.key === "Backspace"){
+      e.preventDefault();
+      search.value = search.value.slice(0,-1);
+      handleSearch();
+      return;
+    }
+
+    if(e.key.length === 1){
+      e.preventDefault();
+      let sekarang = Date.now();
+      if(sekarang - waktuTombolScanner > 900){
+        search.value = "";
+      }
+      waktuTombolScanner = sekarang;
+      search.value += e.key;
+      handleSearch();
+    }
+  }
+});
+
+
+// AUTO FOCUS SEARCH - mode scan selalu standby, mode keyboard tidak mencuri fokus
+function modalSedangTerbuka(){
+  return modal.style.display === "flex" ||
+         stockModal.style.display === "flex" ||
+         gudangModal.style.display === "flex" ||
+         inputModal.style.display === "flex" ||
+         calcModal.style.display === "flex";
+}
+
+function focusSearch(force){
+  if(modalSedangTerbuka()) return;
+  if(searchMode !== "scan" && !force) return;
+
+  let aktif = document.activeElement;
+  if(!force && aktif && aktif !== search &&
+     (aktif.tagName === "INPUT" ||
+      aktif.tagName === "TEXTAREA" ||
+      aktif.tagName === "SELECT")) return;
+
+  try{
+    search.focus({preventScroll:true});
+  }catch(err){
+    search.focus();
+  }
+}
+
+window.onload = function(){
+  setSearchMode("scan");
+  updateClearButton();
+};
+
+window.addEventListener("focus", function(){
+  if(searchMode === "scan") setTimeout(focusSearch, 80);
+});
+
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState === "visible" && searchMode === "scan"){
+    setTimeout(focusSearch, 80);
+  }
+});
+
+// Klik area biasa mengembalikan scanner. Input dan modal tidak diganggu.
+document.addEventListener("click", function(e){
+  if(searchMode !== "scan" || modalSedangTerbuka()) return;
+  if(e.target.closest && e.target.closest("input, button, #selisihFilter")) return;
+  setTimeout(focusSearch, 50);
+});
+
+// Cadangan saat fokus scanner sempat lepas.
+document.addEventListener("keydown", function(e){
+  if(searchMode !== "scan" || modalSedangTerbuka()) return;
+  if(e.ctrlKey || e.altKey || e.metaKey) return;
+  if(e.target === search) return;
+
+  let target = e.target;
+  if(target && (target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.tagName === "SELECT")) return;
+
+  if(e.key === "Enter" || e.key === "Tab"){
+    e.preventDefault();
+    if(search.value) prosesScan();
+    else focusSearch(true);
+    return;
+  }
+
+  if(e.key.length === 1){
+    e.preventDefault();
+    let sekarang = Date.now();
+    if(sekarang - waktuTombolScanner > 900){
+      search.value = "";
+    }
+    waktuTombolScanner = sekarang;
+    search.value += e.key;
+    handleSearch();
+    focusSearch(true);
+  }
+}, true);
+
+// keep focus after modal close / simpan
+function keepFocus(){
+  if(searchMode === "scan") setTimeout(function(){ focusSearch(true); }, 120);
+}
+
+
+// DYNAMIC FLOAT BUTTON (CENTER + ADAPT KEYBOARD)
+let calcBtn = null;
+function getCalcBtn(){
+  if(!calcBtn) calcBtn = document.getElementById("calcBtn");
+  return calcBtn;
+}
+
+// default center
+function setCenter(){
+  let btn = getCalcBtn();
+  if(!btn) return;
+  btn.style.top = "50%";
+  btn.style.transform = "translateY(-50%)";
+  btn.style.bottom = "";
+}
+
+// move up when keyboard/input active
+function setUp(){
+  let btn = getCalcBtn();
+  if(!btn) return;
+  btn.style.top = "";
+  btn.style.transform = "";
+  btn.style.bottom = "120px";
+}
+
+// focus detect
+document.addEventListener("focusin", function(e){
+  if(e.target.tagName === "INPUT"){
+    setUp();
+  }
+});
+
+document.addEventListener("focusout", function(){
+  setTimeout(()=>{ setCenter(); },200);
+});
+
+// resize fallback
+window.addEventListener("resize", function(){
+  let vh = window.innerHeight;
+  let full = screen.height;
+
+  if(vh < full - 150){
+    setUp();
+  } else {
+    setCenter();
+  }
+});
+
+
+function exportPDF(){
+  try {
+
+    let shift = prompt("Masukkan Shift (contoh: Shift 1 / Shift 2 / Malam)");
+    if(!shift) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    let y = 12;
+
+    doc.setFontSize(14);
+    doc.text("REPORT STOCK OPNAME", 10, y);
+
+    let today = new Date();
+    let tgl = today.getFullYear() + "-" +
+              String(today.getMonth()+1).padStart(2,'0') + "-" +
+              String(today.getDate()).padStart(2,'0');
+
+    doc.setFontSize(10);
+    doc.text("Tanggal SO : " + tgl, 10, y + 6);
+    doc.text("Shift      : " + shift, 10, y + 12);
+
+    y += 18;
+
+    // header garis rapi (tidak nabrak teks)
+    doc.line(10, y-4, 200, y-4);
+
+    doc.text("PLU", 10, y);
+    doc.text("NAMA", 40, y);
+    doc.text("STOCK", 110, y);
+    doc.text("QTY", 140, y);
+    doc.text("SELISIH", 170, y);
+
+    doc.line(10, y+4, 200, y+4);
+
+    y += 10;
+
+    data.forEach((x,i) => {
+
+      if(i % 2 === 0){
+        doc.setFillColor(245,245,245);
+        doc.rect(10, y-5, 190, 8, 'F');
       }
 
-      function normalizeItem(item) {
-        return {
-          plu: String(item?.plu ?? '').replace(/\D/g, ''),
-          barcode: String(item?.barcode ?? '').replace(/\s/g, ''),
-          nama: String(item?.nama ?? '').trim().toUpperCase(),
-          stock: Math.max(0, safeInteger(item?.stock, 0)),
-          qty: Math.max(0, safeInteger(item?.qty, 0))
-        };
+      let selisih = x.qty - x.stock;
+      let textSelisih = selisih === 0 ? "KLOP" : (selisih > 0 ? "+"+selisih : selisih);
+
+      doc.setTextColor(0,0,0);
+      doc.text(String(x.plu), 10, y);
+      doc.text(String(x.nama).substring(0,25), 40, y);
+      doc.text(String(x.stock), 110, y);
+      doc.text(String(x.qty), 140, y);
+
+      if(selisih === 0){
+        doc.setFillColor(200,255,200);
+      } else if(selisih > 0){
+        doc.setFillColor(200,220,255);
+      } else {
+        doc.setFillColor(255,200,200);
       }
 
-      function loadData() {
-        try {
-          const saved = localStorage.getItem(STORAGE_KEY);
-          if (!saved) return [];
-          const parsed = JSON.parse(saved);
-          if (!Array.isArray(parsed)) return [];
-          return parsed.map(normalizeItem).filter(item => item.plu && item.nama);
-        } catch (error) {
-          console.error('Gagal membaca data SO:', error);
-          return [];
-        }
+      doc.rect(168, y-4, 24, 6, 'F');
+
+      let textWidth = doc.getTextWidth(String(textSelisih));
+      let centerX = 180 - (textWidth / 2);
+      doc.text(String(textSelisih), centerX, y);
+
+      y += 8;
+
+      if(y > 280){
+        doc.addPage();
+        y = 12;
       }
-
-      function saveData() {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (error) {
-          console.error('Gagal menyimpan data SO:', error);
-          alert('Data tidak dapat disimpan di perangkat ini.');
-        }
-      }
-
-      function openModal(modal, focusTarget = null) {
-        modal.classList.add('show');
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-        if (focusTarget) {
-          setTimeout(() => focusTarget.focus(), 50);
-        }
-      }
-
-      function closeModal(modal) {
-        modal.classList.remove('show');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-      }
-
-      function differenceInfo(item) {
-        const difference = item.qty - item.stock;
-        if (difference === 0) return { value: 'KLOP', className: 'klop' };
-        if (difference > 0) return { value: `+${difference}`, className: 'plus' };
-        return { value: String(difference), className: 'minus' };
-      }
-
-      function matchesFilter(item) {
-        const difference = item.qty - item.stock;
-        if (filterMode === 'klop') return difference === 0;
-        if (filterMode === 'plus') return difference > 0;
-        if (filterMode === 'minus') return difference < 0;
-        return true;
-      }
-
-      function matchesSearch(item, key) {
-        if (!key) return true;
-        return item.plu.toLowerCase().includes(key) ||
-          item.barcode.toLowerCase().includes(key) ||
-          item.nama.toLowerCase().includes(key);
-      }
-
-      function render() {
-        const key = el.searchInput.value.trim().toLowerCase();
-        const fragment = document.createDocumentFragment();
-        let visibleCount = 0;
-
-        data.forEach((item, index) => {
-          if (!matchesFilter(item) || !matchesSearch(item, key)) return;
-          visibleCount += 1;
-
-          const difference = differenceInfo(item);
-          const row = document.createElement('div');
-          row.className = 'item';
-
-          const deleteCell = document.createElement('div');
-          const deleteButton = document.createElement('button');
-          deleteButton.className = 'delete-btn';
-          deleteButton.type = 'button';
-          deleteButton.textContent = '✖';
-          deleteButton.title = 'Hapus item';
-          deleteButton.addEventListener('click', event => {
-            event.stopPropagation();
-            deleteItem(index);
-          });
-          deleteCell.appendChild(deleteButton);
-
-          const pluCell = document.createElement('div');
-          pluCell.className = 'clickable';
-          pluCell.textContent = item.plu;
-          pluCell.addEventListener('click', () => openQtyModal(index));
-
-          const nameCell = document.createElement('div');
-          nameCell.className = 'clickable';
-          nameCell.textContent = item.nama;
-          nameCell.addEventListener('click', () => openQtyModal(index));
-
-          const stockCell = document.createElement('div');
-          stockCell.className = showStock ? 'clickable' : '';
-          stockCell.textContent = showStock ? String(item.stock) : '';
-          if (showStock) stockCell.addEventListener('click', () => openStockModal(index));
-
-          const qtyCell = document.createElement('div');
-          qtyCell.className = 'clickable';
-          qtyCell.textContent = String(item.qty);
-          qtyCell.addEventListener('click', () => openQtyModal(index));
-
-          const differenceCell = document.createElement('div');
-          differenceCell.className = `difference ${difference.className}`;
-          differenceCell.textContent = difference.value;
-
-          row.append(deleteCell, pluCell, nameCell, stockCell, qtyCell, differenceCell);
-          fragment.appendChild(row);
-        });
-
-        el.itemList.replaceChildren(fragment);
-
-        if (visibleCount === 0) {
-          const empty = document.createElement('div');
-          empty.className = 'empty-state';
-          empty.textContent = data.length === 0
-            ? 'Belum ada item. Tekan “+ Tambah Item” untuk mulai.'
-            : 'Tidak ada item yang sesuai dengan pencarian atau filter.';
-          el.itemList.appendChild(empty);
-        }
-      }
-
-      function openQtyModal(index) {
-        activeIndex = index;
-        const item = data[index];
-        lastScrollY = window.scrollY;
-        el.qtyItemName.textContent = item.nama;
-        el.qtyItemPlu.textContent = item.plu;
-        el.qtyItemStock.textContent = String(item.stock);
-        el.qtyCurrent.textContent = String(item.qty);
-        el.qtyStockInfo.style.display = showStock ? 'block' : 'none';
-        el.qtyInput.value = '';
-        openModal(el.qtyModal, el.qtyInput);
-      }
-
-      function saveQty() {
-        if (activeIndex === null || !data[activeIndex]) return;
-        const addition = Math.max(0, safeInteger(el.qtyInput.value, 0));
-        data[activeIndex].qty += addition;
-        saveData();
-        render();
-        closeModal(el.qtyModal);
-        window.scrollTo(0, lastScrollY);
-      }
-
-      function resetQty() {
-        if (activeIndex === null || !data[activeIndex]) return;
-        if (!confirm('Reset qty item ini menjadi 0?')) return;
-        data[activeIndex].qty = 0;
-        saveData();
-        el.qtyCurrent.textContent = '0';
-        render();
-      }
-
-      function changeQtyInput(delta) {
-        const current = Math.max(0, safeInteger(el.qtyInput.value, 0));
-        el.qtyInput.value = String(Math.max(0, current + delta));
-      }
-
-      function openStockModal(index) {
-        if (!showStock) return;
-        activeIndex = index;
-        lastScrollY = window.scrollY;
-        el.stockItemName.textContent = data[index].nama;
-        el.stockInput.value = String(data[index].stock);
-        openModal(el.stockModal, el.stockInput);
-        setTimeout(() => el.stockInput.select(), 60);
-      }
-
-      function saveStock() {
-        if (activeIndex === null || !data[activeIndex]) return;
-        data[activeIndex].stock = Math.max(0, safeInteger(el.stockInput.value, 0));
-        saveData();
-        render();
-        closeModal(el.stockModal);
-        window.scrollTo(0, lastScrollY);
-      }
-
-      function deleteItem(index) {
-        const item = data[index];
-        if (!confirm(`Hapus ${item.nama}?`)) return;
-        data.splice(index, 1);
-        saveData();
-        render();
-      }
-
-      function resetAll() {
-        if (!confirm('Reset seluruh qty dan stock menjadi 0?')) return;
-        data.forEach(item => {
-          item.qty = 0;
-          item.stock = 0;
-        });
-        saveData();
-        render();
-      }
-
-      function toggleStock() {
-        showStock = !showStock;
-        el.toggleStockBtn.textContent = showStock ? 'Hide Stock' : 'Show Stock';
-        el.stockHeader.textContent = showStock ? 'STOCK' : '—';
-        render();
-      }
-
-      function openInputModal() {
-        el.itemPlu.value = '';
-        el.itemBarcode.value = '';
-        el.itemName.value = '';
-        el.itemStock.value = '';
-        openModal(el.inputModal, el.itemPlu);
-      }
-
-      function saveItem() {
-        const plu = el.itemPlu.value.replace(/\D/g, '');
-        const barcode = el.itemBarcode.value.trim();
-        const nama = el.itemName.value.trim().toUpperCase();
-        const stock = Math.max(0, safeInteger(el.itemStock.value, 0));
-
-        if (!plu) {
-          alert('PLU wajib diisi.');
-          el.itemPlu.focus();
-          return;
-        }
-
-        if (!nama) {
-          alert('Nama wajib diisi.');
-          el.itemName.focus();
-          return;
-        }
-
-        const existingIndex = data.findIndex(item => item.plu === plu);
-        if (existingIndex !== -1) {
-          alert('PLU sudah terdaftar. Silakan edit item yang sudah ada.');
-          return;
-        }
-
-        if (barcode && data.some(item => item.barcode && item.barcode === barcode)) {
-          alert('Barcode sudah digunakan oleh item lain.');
-          return;
-        }
-
-        data.push({ plu, barcode, nama, stock, qty: 0 });
-        saveData();
-        render();
-        closeModal(el.inputModal);
-        el.searchInput.value = plu;
-        render();
-      }
-
-      function handleSearchEnter(event) {
-        if (event.key !== 'Enter') return;
-        const key = el.searchInput.value.trim().toLowerCase();
-        if (!key) return;
-
-        const matches = data
-          .map((item, index) => ({ item, index }))
-          .filter(({ item }) => matchesFilter(item) && matchesSearch(item, key));
-
-        if (matches.length === 1) {
-          openQtyModal(matches[0].index);
-          el.searchInput.value = '';
-          render();
-        } else if (matches.length === 0) {
-          alert('Data tidak ditemukan.');
-        }
-      }
-
-      function exportJson() {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'so_data.json';
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
-      }
-
-      function importJson() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json,application/json';
-        input.addEventListener('change', () => {
-          const file = input.files?.[0];
-          if (!file) return;
-
-          const reader = new FileReader();
-          reader.onload = event => {
-            try {
-              const parsed = JSON.parse(String(event.target?.result ?? ''));
-              if (!Array.isArray(parsed)) throw new Error('Format bukan array.');
-
-              const normalized = parsed
-                .map(normalizeItem)
-                .filter(item => item.plu && item.nama);
-
-              const seenPlu = new Set();
-              const valid = [];
-              normalized.forEach(item => {
-                if (!seenPlu.has(item.plu)) {
-                  seenPlu.add(item.plu);
-                  valid.push(item);
-                }
-              });
-
-              if (valid.length === 0 && parsed.length > 0) {
-                throw new Error('Tidak ada item valid.');
-              }
-
-              data = valid;
-              saveData();
-              render();
-              alert(`Import berhasil: ${data.length} item.`);
-            } catch (error) {
-              console.error(error);
-              alert('File JSON tidak valid atau format datanya tidak sesuai.');
-            }
-          };
-          reader.readAsText(file);
-        });
-        input.click();
-      }
-
-      function formatDate(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-
-      function exportPdf() {
-        if (!window.jspdf?.jsPDF) {
-          alert('Library PDF belum termuat. Pastikan perangkat terhubung internet lalu coba lagi.');
-          return;
-        }
-
-        const shift = prompt('Masukkan Shift (contoh: Shift 1 / Shift 2 / Malam)');
-        if (!shift) return;
-
-        try {
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
-          const dateText = formatDate(new Date());
-          const pageWidth = doc.internal.pageSize.getWidth();
-          const marginLeft = 10;
-          const marginRight = 10;
-          let y = 12;
-
-          function drawHeader(includeTitle) {
-            if (includeTitle) {
-              doc.setFontSize(14);
-              doc.setTextColor(0, 0, 0);
-              doc.text('REPORT STOCK OPNAME', marginLeft, y);
-              doc.setFontSize(10);
-              doc.text(`Tanggal SO : ${dateText}`, marginLeft, y + 6);
-              doc.text(`Shift      : ${shift}`, marginLeft, y + 12);
-              y += 20;
-            }
-
-            doc.setFontSize(9);
-            doc.setTextColor(0, 0, 0);
-            doc.line(marginLeft, y - 4, pageWidth - marginRight, y - 4);
-            doc.text('PLU', 10, y);
-            doc.text('NAMA', 40, y);
-            doc.text('STOCK', 118, y, { align: 'right' });
-            doc.text('QTY', 143, y, { align: 'right' });
-            doc.text('SELISIH', 181, y, { align: 'center' });
-            doc.line(marginLeft, y + 4, pageWidth - marginRight, y + 4);
-            y += 10;
-          }
-
-          drawHeader(true);
-
-          data.forEach((item, index) => {
-            const nameLines = doc.splitTextToSize(item.nama, 68);
-            const rowHeight = Math.max(8, nameLines.length * 4.2 + 2);
-
-            if (y + rowHeight > 284) {
-              doc.addPage();
-              y = 12;
-              drawHeader(false);
-            }
-
-            if (index % 2 === 0) {
-              doc.setFillColor(245, 245, 245);
-              doc.rect(marginLeft, y - 5, pageWidth - marginLeft - marginRight, rowHeight, 'F');
-            }
-
-            const difference = item.qty - item.stock;
-            const differenceText = difference === 0 ? 'KLOP' : difference > 0 ? `+${difference}` : String(difference);
-
-            doc.setFontSize(8.5);
-            doc.setTextColor(0, 0, 0);
-            doc.text(item.plu, 10, y);
-            doc.text(nameLines, 40, y);
-            doc.text(String(item.stock), 118, y, { align: 'right' });
-            doc.text(String(item.qty), 143, y, { align: 'right' });
-
-            if (difference === 0) doc.setFillColor(200, 255, 200);
-            else if (difference > 0) doc.setFillColor(200, 220, 255);
-            else doc.setFillColor(255, 200, 200);
-
-            doc.rect(168, y - 4, 25, 6, 'F');
-            doc.text(differenceText, 180.5, y, { align: 'center' });
-            y += rowHeight;
-          });
-
-          doc.save(`SO 979 - ${shift} - ${dateText}.pdf`);
-        } catch (error) {
-          console.error(error);
-          alert(`Gagal membuat PDF: ${error.message}`);
-        }
-      }
-
-      function openCalculator() {
-        el.calcDisplay.value = '';
-        openModal(el.calcModal);
-      }
-
-      function calculateExpression() {
-        const expression = el.calcDisplay.value;
-        if (!expression) return;
-
-        if (!/^[0-9+\-*/().\s]+$/.test(expression)) {
-          el.calcDisplay.value = 'error';
-          return;
-        }
-
-        try {
-          const result = Function(`"use strict"; return (${expression})`)();
-          el.calcDisplay.value = Number.isFinite(result) ? String(result) : 'error';
-        } catch {
-          el.calcDisplay.value = 'error';
-        }
-      }
-
-      el.addItemBtn.addEventListener('click', openInputModal);
-      el.resetAllBtn.addEventListener('click', resetAll);
-      el.toggleStockBtn.addEventListener('click', toggleStock);
-      el.exportJsonBtn.addEventListener('click', exportJson);
-      el.importJsonBtn.addEventListener('click', importJson);
-      el.exportPdfBtn.addEventListener('click', exportPdf);
-
-      el.searchInput.addEventListener('input', render);
-      el.searchInput.addEventListener('keydown', handleSearchEnter);
-      el.clearSearchBtn.addEventListener('click', () => {
-        el.searchInput.value = '';
-        render();
-        el.searchInput.focus();
-      });
-
-      el.filterTrigger.addEventListener('click', event => {
-        event.stopPropagation();
-        el.filterMenu.classList.toggle('show');
-      });
-
-      el.filterMenu.addEventListener('click', event => {
-        const button = event.target.closest('button[data-filter]');
-        if (!button) return;
-        filterMode = button.dataset.filter;
-        el.filterMenu.classList.remove('show');
-        render();
-      });
-
-      document.addEventListener('click', event => {
-        if (!el.filterMenu.contains(event.target) && event.target !== el.filterTrigger) {
-          el.filterMenu.classList.remove('show');
-        }
-      });
-
-      el.minusQtyBtn.addEventListener('click', () => changeQtyInput(-1));
-      el.plusQtyBtn.addEventListener('click', () => changeQtyInput(1));
-      el.saveQtyBtn.addEventListener('click', saveQty);
-      el.resetQtyBtn.addEventListener('click', resetQty);
-      el.closeQtyBtn.addEventListener('click', () => closeModal(el.qtyModal));
-
-      el.saveStockBtn.addEventListener('click', saveStock);
-      el.closeStockBtn.addEventListener('click', () => closeModal(el.stockModal));
-
-      el.saveItemBtn.addEventListener('click', saveItem);
-      el.closeInputBtn.addEventListener('click', () => closeModal(el.inputModal));
-
-      el.calcBtn.addEventListener('click', openCalculator);
-      el.closeCalcBtn.addEventListener('click', () => closeModal(el.calcModal));
-      el.calcGrid.addEventListener('click', event => {
-        const button = event.target.closest('button');
-        if (!button) return;
-
-        if (button.dataset.calc) {
-          if (el.calcDisplay.value === 'error') el.calcDisplay.value = '';
-          el.calcDisplay.value += button.dataset.calc;
-          return;
-        }
-
-        if (button.dataset.action === 'clear') el.calcDisplay.value = '';
-        if (button.dataset.action === 'backspace') el.calcDisplay.value = el.calcDisplay.value.slice(0, -1);
-        if (button.dataset.action === 'calculate') calculateExpression();
-      });
-
-      [el.qtyModal, el.stockModal, el.inputModal, el.calcModal].forEach(modal => {
-        modal.addEventListener('click', event => {
-          if (event.target === modal) closeModal(modal);
-        });
-      });
-
-      document.addEventListener('keydown', event => {
-        if (event.key !== 'Escape') return;
-        [el.qtyModal, el.stockModal, el.inputModal, el.calcModal].forEach(modal => {
-          if (modal.classList.contains('show')) closeModal(modal);
-        });
-      });
-
-      window.addEventListener('load', () => {
-        render();
-        el.searchInput.focus();
-      });
-    })();
-  </script>
+    });
+
+    let filename = "SO 979 - " + shift + " - " + tgl + ".pdf";
+    doc.save(filename);
+
+  } catch(err){
+    alert("Error PDF: " + err);
+  }
+}
+
+
+
+// FIX PLUS MINUS QTY (FINAL)
+function plusQty(){
+  let val = parseInt(m_input.value);
+  if(isNaN(val)) val = 0;
+  val += 1;
+  m_input.value = val;
+}
+
+function minusQty(){
+  let val = parseInt(m_input.value);
+  if(isNaN(val)) val = 0;
+  val -= 1;
+  if(val < 0) val = 0;
+  m_input.value = val;
+}
+
+</script>
+<!-- CALC BUTTON -->
+<button id="calcBtn" onclick="openCalc()" style="
+position:fixed; left:10px; top:50%; transform:translateY(-50%);
+width:45px;height:45px;border-radius:50%;
+background:linear-gradient(45deg,#2196F3,#21CBF3);
+color:#fff;font-size:14px;border:none;line-height:1.1;">+×<br>÷=</button>
+<!-- CALC MODAL -->
+<div class="modal" id="calcModal">
+<div class="modal-content calc-modal" style="
+position:absolute;
+bottom:80px;
+left:10px;
+right:auto;
+width:220px;
+max-width:220px;
+border-radius:16px;
+box-shadow:0 8px 20px rgba(0,0,0,0.3);
+padding:10px;
+">
+<h3>Kalkulator</h3>
+<input class="calc-display" id="calcDisplay" readonly=""/>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;justify-items:center;">
+<button onclick="press('7')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">7</button>
+<button onclick="press('8')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">8</button>
+<button onclick="press('9')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">9</button>
+<button onclick="press('/')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">/</button>
+<button onclick="press('4')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">4</button>
+<button onclick="press('5')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">5</button>
+<button onclick="press('6')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">6</button>
+<button onclick="press('*')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">*</button>
+<button onclick="press('1')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">1</button>
+<button onclick="press('2')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">2</button>
+<button onclick="press('3')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">3</button>
+<button onclick="press('-')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">-</button>
+<button onclick="press('0')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">0</button>
+<button onclick="backspace()" style="width:45px;height:45px;border-radius:50%;background:#ff9800;color:#fff;font-weight:bold;margin:auto;">⌫</button>
+<button onclick="clearCalc()" style="width:45px;height:45px;border-radius:50%;background:#f44336;color:#fff;font-weight:bold;margin:auto;">C</button>
+<button onclick="press('+')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">+</button>
+<button onclick="calculate()" style="grid-column: span 4;border-radius:12px;background:#00c853;color:#fff;font-weight:bold;font-size:16px;height:45px;width:100%;display:block;">=</button>
+</div>
+<button onclick="closeCalc()" style="margin-top:10px;width:100%;height:45px;background:#d50000;color:#fff;font-weight:bold;border:none;border-radius:12px;">Tutup</button>
+</div>
+</div>
+<!-- INPUT MODAL -->
+<div class="modal" id="inputModal">
+<div class="modal-content calc-modal">
+<div style="display:flex;gap:10px;align-items:center;"><label style="width:70px;">PLU :</label><input id="i_plu" inputmode="numeric" placeholder="Masukkan PLU" style="flex:1;" type="tel"/></div><div style="display:flex;gap:10px;align-items:center;"><label style="width:70px;">Barcode :</label><input id="i_barcode" inputmode="numeric" placeholder="Scan / input barcode" style="flex:1;" type="tel"/></div><div style="display:flex;gap:10px;align-items:center;"><label style="width:70px;">Nama :</label><input id="i_nama" placeholder="Masukkan nama item" style="flex:1;"/></div><div style="display:flex;gap:10px;align-items:center;"><label style="width:70px;">Stock :</label><input id="i_stock" inputmode="numeric" placeholder="Masukkan stock awal" style="flex:1;" type="tel"/></div><h3>Tambah Item</h3>
+<div class="btn-row">
+<button class="btn" onclick="simpanInput()">Simpan</button>
+</div>
+<button onclick="closeInputModal()" style="margin-top:10px;width:100%;height:50px;background:#d50000;color:#fff;font-weight:bold;border:none;border-radius:10px;">Tutup</button>
+</div>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
