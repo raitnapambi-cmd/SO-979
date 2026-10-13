@@ -1661,7 +1661,7 @@ selectCalcTab(0);
 @media(max-width:370px){.header,.item{grid-template-columns:22px 46px minmax(0,1fr) 37px 37px 47px;gap:2px}.item div{font-size:13px!important}.item div:nth-child(2){font-size:12px!important}}
 </style><div id="barcodeToast" role="status" aria-live="polite" hidden></div><script>
 let barcodeToastTimer;
-function showBarcodeToast(){const toast=document.getElementById('barcodeToast');clearTimeout(barcodeToastTimer);toast.textContent='Barcode berhasil disalin siap dicek stock di aplikasi APO.';toast.hidden=false;barcodeToastTimer=setTimeout(()=>{toast.hidden=true},3500)}
+function showBarcodeToast(){const toast=document.getElementById('barcodeToast');clearTimeout(barcodeToastTimer);toast.textContent='Barcode berhasil disalin siap dicek stock di aplikasi APO.';toast.hidden=false;barcodeToastTimer=setTimeout(()=>{toast.hidden=true},4000)}
 </script><style>
 #calcModal .modal-content{padding:0!important;gap:0!important;background:#eef2f7;color:#253d58;height:100dvh;max-height:100dvh!important}
 #calcModal .calc-head{flex:0 0 58px;padding:10px 15px;background:#fff;border-bottom:1px solid #e1e7ef}#calcModal .calc-head h3{font-size:17px!important;letter-spacing:-.3px}#calcModal .calc-back{font-size:12px!important;border:1px solid #d9e3ee;background:#f1f5fa;color:#3b587c;border-radius:10px;padding:9px 12px}
@@ -1689,7 +1689,7 @@ selectCalcTab(6);
 #actionToast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--keyboard-inset,0px) + 82px);width:calc(100% - 28px);max-width:430px;padding:14px 17px;background:#314c69;color:white;border:1px solid #456482;border-radius:11px;box-shadow:0 5px 20px #0002;z-index:25001;font:15px/1.5 Arial,sans-serif;pointer-events:none;text-align:left}#actionToast[hidden]{display:none}body.calc-open #actionToast{bottom:auto;top:65px}
 </style><div id="actionToast" role="status" aria-live="polite" hidden></div><script>
 let actionToastTimer;
-function showActionToast(message){const toast=document.getElementById('actionToast');clearTimeout(actionToastTimer);toast.textContent=message;toast.hidden=false;actionToastTimer=setTimeout(()=>{toast.hidden=true},3500)}
+function showActionToast(message){const toast=document.getElementById('actionToast');clearTimeout(actionToastTimer);toast.textContent=message;toast.hidden=false;actionToastTimer=setTimeout(()=>{toast.hidden=true},4000)}
 // Capture first, so the read-only stock cell gives guidance even in stock-entry mode.
 list.addEventListener('click',function(e){if(!e.target.closest('.stock-readonly-cell'))return;e.preventDefault();e.stopImmediatePropagation();showActionToast('Untuk input stock ada di menu "Input Stock" di bagian atas.');},true);
 const openCalcBeforeNotice=openCalc;openCalc=function(){openCalcBeforeNotice();showActionToast('Silahkan gunakan tabel perkalian agar lebih cepat menghitung.')};
@@ -2022,5 +2022,12 @@ body.search-results-active #list:empty{display:none!important}
  syncSearchResults();
 })();
 </script>
+
+<style>
+/* PLU mengikuti ukuran nama item pada kedua mode, tanpa menambah tinggi card. */
+body:not(.so-stock-view) #list .item:not(.gudang-item)>div:nth-child(2){font-size:14px!important;line-height:1.4!important;}
+body.so-stock-view #list .stock-mode-item>div:first-child{font-size:14px!important;line-height:1.4!important;}
+@media(max-width:370px){body:not(.so-stock-view) #list .item:not(.gudang-item)>div:nth-child(2),body.so-stock-view #list .stock-mode-item>div:first-child{font-size:13px!important;}}
+</style>
 </body>
 </html>
