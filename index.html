@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="width=device-width, initial-scale=1, interactive-widget=resizes-content" name="viewport"/>
 <title>SO FULL FINAL (ALL FIXED)</title>
 <style>
 body { font-family: Arial; margin:0; font-size:12px; }
@@ -12,10 +12,10 @@ body { font-family: Arial; margin:0; font-size:12px; }
 input { padding:10px; margin:5px 0; width:100%; }
 
 .row { display:flex; gap:5px; }
-button { padding:10px; border:none; cursor:pointer; color:#fff; font-weight:bold; }
+button { padding:10px; border:none; cursor:pointer; color:#fff; font-weight:400; }
 
 .header{
-  font-weight:bold;
+  font-weight:400;
   background:#eee;
   border-bottom:2px solid #000;
   display:grid;
@@ -64,7 +64,7 @@ button { padding:10px; border:none; cursor:pointer; color:#fff; font-weight:bold
   transform:translateY(-50%);
   cursor:pointer;
   display:none;
-  font-weight:bold;
+  font-weight:400;
 }
 
 /* modal */
@@ -134,7 +134,7 @@ button{
 .search-inner input::placeholder{
   font-size:15px;
   color:#666;
-  font-weight:500;
+  font-weight:400;
 }
 
 
@@ -168,7 +168,7 @@ button{
   background:#00c853;
   color:#fff;
   font-size:20px;
-  font-weight:bold;
+  font-weight:400;
   margin-top:8px;
 }
 
@@ -232,7 +232,7 @@ button{
   border-radius:50%;
   background:#ffffff;
   color:#000;
-  font-weight:bold;
+  font-weight:400;
   font-size:18px;
   box-shadow:0 2px 5px rgba(0,0,0,0.2);
 
@@ -290,7 +290,7 @@ button{
 .search-inner input::placeholder{
   font-size:15px;
   color:#666;
-  font-weight:500;
+  font-weight:400;
 }
 
 
@@ -324,7 +324,7 @@ button{
   background:#00c853;
   color:#fff;
   font-size:20px;
-  font-weight:bold;
+  font-weight:400;
   margin-top:8px;
 }
 
@@ -356,7 +356,7 @@ button{
 .item div:nth-child(1){
   font-size:11px;
   color:#d50000;
-  font-weight:bold;
+  font-weight:400;
 }
 
 .item div:nth-child(3){ text-align:left;
@@ -388,7 +388,7 @@ button{
   background:#00c853;
   color:#fff;
   font-size:20px;
-  font-weight:bold;
+  font-weight:400;
   margin-top:8px;
 }
 
@@ -440,7 +440,7 @@ button{
   background:#00c853;
   color:#fff;
   font-size:20px;
-  font-weight:bold;
+  font-weight:400;
   margin-top:8px;
 }
 
@@ -530,7 +530,7 @@ button{
 .search-inner input::placeholder{
   font-size:13px;
   color:#666;
-  font-weight:500;
+  font-weight:400;
 }
 .search-clear{
   flex:0 0 32px;
@@ -566,7 +566,7 @@ button{
   background:#eeeeee;
   color:#555;
   font-size:12px;
-  font-weight:bold;
+  font-weight:400;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -641,7 +641,7 @@ button{
 </style>
 <style>
 /* Minimal polish only: original layout and palette retained. */
-*{box-sizing:border-box}.top-actions{flex-wrap:wrap}.top-actions button{flex:1 1 65px;min-height:36px;border-radius:7px}.top{z-index:20}.search-container{top:var(--toolbar-height,60px)}.header,.item{grid-template-columns:28px 52px minmax(0,2.2fr) 42px 42px 51px;gap:3px}.item{min-height:52px}.item div:nth-child(3){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.35;min-height:2.7em;max-height:2.7em;word-break:break-word;white-space:normal}.item div:nth-child(1),.item div:nth-child(2),.item div:nth-child(4),.item div:nth-child(5),.item div:nth-child(6){font-weight:800;font-variant-numeric:tabular-nums}.item.gudang-item div:nth-child(2){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;min-height:2.7em;max-height:2.7em}.item.gudang-item div:nth-child(3){display:block;min-height:0;max-height:none;font-weight:800}.header.gudang-view,.item.gudang-item{grid-template-columns:70px minmax(0,1fr) 82px}.modal-content span,.modal-content b,.modal-content input{font-weight:800;font-variant-numeric:tabular-nums}.modal-content{max-height:90dvh;overflow:auto}#reportModal .modal-content{max-width:420px;width:94%}#reportText{width:100%;height:220px;resize:vertical;padding:10px;border:1px solid #ccc;border-radius:8px;font:13px/1.7 monospace}#reportModal p{font-size:12px}.plu-barcode{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;margin:12px auto;max-width:340px;text-align:center}.plu-barcode svg{display:block;width:100%;height:60px}.plu-barcode code{display:block;font-size:16px;font-weight:800;margin-top:6px}.plu-barcode small{font-size:11px;color:#666}.stock-nav{display:flex;gap:8px;align-items:center;margin-top:12px}.stock-nav button{flex:1;padding:10px 5px;border-radius:8px;background:#bbdefb;font-size:12px}.stock-nav button:disabled{opacity:.4}.stock-nav span{font-size:11px;white-space:nowrap}.stock-active{outline:2px solid #4c87bd}.stock-entry-hint{font-size:11px;padding:7px 10px;color:#365a78;background:#eaf3fa}#stockSaveHint{font-size:11px!important;color:#63727c}@media(max-width:370px){.header,.item{grid-template-columns:24px 43px minmax(0,1fr) 35px 35px 45px;gap:2px}.item{margin-inline:6px;padding-inline:5px}}
+*{box-sizing:border-box}.top-actions{flex-wrap:wrap}.top-actions button{flex:1 1 65px;min-height:36px;border-radius:7px}.top{z-index:20}.search-container{top:var(--toolbar-height,60px)}.header,.item{grid-template-columns:28px 52px minmax(0,2.2fr) 42px 42px 51px;gap:3px}.item{min-height:52px}.item div:nth-child(3){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.35;min-height:2.7em;max-height:2.7em;word-break:break-word;white-space:normal}.item div:nth-child(1),.item div:nth-child(2),.item div:nth-child(4),.item div:nth-child(5),.item div:nth-child(6){font-weight:400;font-variant-numeric:tabular-nums}.item.gudang-item div:nth-child(2){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;min-height:2.7em;max-height:2.7em}.item.gudang-item div:nth-child(3){display:block;min-height:0;max-height:none;font-weight:400}.header.gudang-view,.item.gudang-item{grid-template-columns:70px minmax(0,1fr) 82px}.modal-content span,.modal-content b,.modal-content input{font-weight:400;font-variant-numeric:tabular-nums}.modal-content{max-height:90dvh;overflow:auto}#reportModal .modal-content{max-width:420px;width:94%}#reportText{width:100%;height:220px;resize:vertical;padding:10px;border:1px solid #ccc;border-radius:8px;font:13px/1.7 monospace}#reportModal p{font-size:12px}.plu-barcode{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;margin:12px auto;max-width:340px;text-align:center}.plu-barcode svg{display:block;width:100%;height:60px}.plu-barcode code{display:block;font-size:16px;font-weight:400;margin-top:6px}.plu-barcode small{font-size:11px;color:#666}.stock-nav{display:flex;gap:8px;align-items:center;margin-top:12px}.stock-nav button{flex:1;padding:10px 5px;border-radius:8px;background:#bbdefb;font-size:12px}.stock-nav button:disabled{opacity:.4}.stock-nav span{font-size:11px;white-space:nowrap}.stock-active{outline:2px solid #4c87bd}.stock-entry-hint{font-size:11px;padding:7px 10px;color:#365a78;background:#eaf3fa}#stockSaveHint{font-size:11px!important;color:#63727c}@media(max-width:370px){.header,.item{grid-template-columns:24px 43px minmax(0,1fr) 35px 35px 45px;gap:2px}.item{margin-inline:6px;padding-inline:5px}}
 </style><style>
 /* Requested refinement only. */
 .item div,.modal-content span,.modal-content b,.modal-content input,.plu-barcode code{font-weight:400!important}
@@ -678,11 +678,8 @@ button{
 <div class="search-container">
   <div class="search-inner" id="searchInner">
     <button id="clearBtn" class="search-clear" type="button" onclick="clearSearch()" aria-label="Hapus pencarian" title="Hapus pencarian">×</button>
-    <input id="search" placeholder="Scan PLU / barcode" oninput="handleSearch()" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="none" readonly>
-    <div class="search-mode-group" aria-label="Mode pencarian">
-      <button id="keyboardModeBtn" class="search-mode-btn" type="button" onclick="setSearchMode('keyboard')" title="Mode keyboard">⌨</button>
-      <button id="scanModeBtn" class="search-mode-btn active" type="button" onclick="setSearchMode('scan')" title="Mode scan">SCAN</button>
-    </div>
+    <input id="search" placeholder="Ketik PLU, barcode, atau nama" oninput="handleSearch()" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="search">
+    
   </div>
 </div>
 <div class="header" id="mainHeader">
@@ -694,7 +691,7 @@ button{
   <div onclick="setFilter('klop')" style="padding:6px;color:green;">Klop</div>
   <div onclick="setFilter('plus')" style="padding:6px;color:blue;">Qty +</div>
   <div onclick="setFilter('minus')" style="padding:6px;color:red;">Qty -</div>
-  <div onclick="setFilter('gudang')" style="padding:8px 6px;color:#ef6c00;font-weight:bold;border-top:1px solid #eee;">📦 Stock Gudang</div>
+  <div onclick="setFilter('gudang')" style="padding:8px 6px;color:#ef6c00;font-weight:400;border-top:1px solid #eee;">📦 Stock Gudang</div>
 </div>
 
 <div id="list"></div>
@@ -883,7 +880,7 @@ let idx=null;
 let showStock=true;
 
 // search
-let searchMode = "scan";
+let searchMode = "keyboard";
 
 function updateClearButton(){
   document.getElementById("clearBtn").classList.toggle("visible", !!search.value);
@@ -905,25 +902,8 @@ function clearSearch(){
   }
 }
 
-function setSearchMode(mode){
-  searchMode = mode === "keyboard" ? "keyboard" : "scan";
-  const keyboardMode = searchMode === "keyboard";
-
-  keyboardModeBtn.classList.toggle("active", keyboardMode);
-  scanModeBtn.classList.toggle("active", !keyboardMode);
-  searchInner.classList.toggle("keyboard-active", keyboardMode);
-  searchInner.classList.toggle("scan-active", !keyboardMode);
-
-  // Scan tetap editable agar caret/kursor benar-benar aktif. inputmode=none menahan keyboard layar Android.
-  search.readOnly = false;
-  search.setAttribute("inputmode", keyboardMode ? "search" : "none");
-  search.placeholder = keyboardMode
-    ? "Ketik PLU, barcode, atau nama"
-    : "Scan PLU / barcode";
-
-  // Fokus langsung dan selalu taruh kursor di ujung input.
-  try{ search.focus({preventScroll:true}); }catch(err){ search.focus(); }
-  try{ search.setSelectionRange(search.value.length, search.value.length); }catch(err){}
+function setSearchMode(){
+ searchMode='keyboard';search.readOnly=false;search.setAttribute('inputmode','search');search.placeholder='Ketik PLU, barcode, atau nama';searchInner.classList.remove('scan-active');searchInner.classList.add('keyboard-active');
 }
 
 function save(){ localStorage.setItem("so_data", JSON.stringify(data)); }
@@ -1119,17 +1099,17 @@ function render(){
       <div class="item gudang-item" onclick="openGudangModal(${i})">
         <div>${x.plu}</div>
         <div>${x.nama}</div>
-        <div style="font-weight:bold;color:#ef6c00;">${gudangQty}</div>
+        <div style="font-weight:400;color:#ef6c00;">${gudangQty}</div>
       </div>`;
     }else{
       html+=`
       <div class="item">
-        <div onclick="event.stopPropagation();hapus(${i})" style="color:#d50000;font-weight:bold;">❌</div>
+        <div onclick="event.stopPropagation();hapus(${i})" style="color:#d50000;font-weight:400;">❌</div>
         <div onclick="openModal(${i})">${x.plu}</div>
         <div onclick="openModal(${i})">${gudangQty>0 ? "📦 " : ""}${x.nama}</div>
-        <div onclick="clickStock(${i})">${showStock ? x.stock : ''}</div>
+        <div class="stock-readonly-cell" title="Edit melalui Input Stock">${showStock ? x.stock : ''}</div>
         <div onclick="openModal(${i})">${x.qty}</div>
-        <div style="color:${(x.qty-x.stock)==0?"green":(x.qty-x.stock)<0?"red":"blue"};font-weight:bold;">
+        <div style="color:${(x.qty-x.stock)==0?"green":(x.qty-x.stock)<0?"red":"blue"};font-weight:400;">
           ${(x.qty-x.stock)==0?"KLOP":(x.qty-x.stock)>0?"+"+(x.qty-x.stock):(x.qty-x.stock)}
         </div>
       </div>`;
@@ -1285,7 +1265,7 @@ function focusSearch(force){
 }
 
 window.onload = function(){
-  setSearchMode("scan");
+  setSearchMode("keyboard");
   updateClearButton();
   requestAnimationFrame(function(){ focusSearch(true); });
   setTimeout(function(){ focusSearch(true); }, 150);
@@ -1527,25 +1507,25 @@ padding:10px;
 <h3>Kalkulator</h3>
 <input class="calc-display" id="calcDisplay" readonly=""/>
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;justify-items:center;">
-<button onclick="press('7')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">7</button>
-<button onclick="press('8')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">8</button>
-<button onclick="press('9')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">9</button>
-<button onclick="press('/')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">/</button>
-<button onclick="press('4')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">4</button>
-<button onclick="press('5')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">5</button>
-<button onclick="press('6')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">6</button>
-<button onclick="press('*')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">*</button>
-<button onclick="press('1')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">1</button>
-<button onclick="press('2')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">2</button>
-<button onclick="press('3')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">3</button>
-<button onclick="press('-')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">-</button>
-<button onclick="press('0')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">0</button>
-<button onclick="backspace()" style="width:45px;height:45px;border-radius:50%;background:#ff9800;color:#fff;font-weight:bold;margin:auto;">⌫</button>
-<button onclick="clearCalc()" style="width:45px;height:45px;border-radius:50%;background:#f44336;color:#fff;font-weight:bold;margin:auto;">C</button>
-<button onclick="press('+')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:bold;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">+</button>
-<button onclick="calculate()" style="grid-column: span 4;border-radius:12px;background:#00c853;color:#fff;font-weight:bold;font-size:16px;height:45px;width:100%;display:block;">=</button>
+<button onclick="press('7')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">7</button>
+<button onclick="press('8')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">8</button>
+<button onclick="press('9')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">9</button>
+<button onclick="press('/')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">/</button>
+<button onclick="press('4')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">4</button>
+<button onclick="press('5')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">5</button>
+<button onclick="press('6')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">6</button>
+<button onclick="press('*')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">*</button>
+<button onclick="press('1')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">1</button>
+<button onclick="press('2')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">2</button>
+<button onclick="press('3')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">3</button>
+<button onclick="press('-')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">-</button>
+<button onclick="press('0')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">0</button>
+<button onclick="backspace()" style="width:45px;height:45px;border-radius:50%;background:#ff9800;color:#fff;font-weight:400;margin:auto;">⌫</button>
+<button onclick="clearCalc()" style="width:45px;height:45px;border-radius:50%;background:#f44336;color:#fff;font-weight:400;margin:auto;">C</button>
+<button onclick="press('+')" style="width:45px;height:45px;border-radius:50%;background:#fff;color:#000;font-weight:400;font-size:18px;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin:auto;">+</button>
+<button onclick="calculate()" style="grid-column: span 4;border-radius:12px;background:#00c853;color:#fff;font-weight:400;font-size:16px;height:45px;width:100%;display:block;">=</button>
 </div>
-<button onclick="closeCalc()" style="margin-top:10px;width:100%;height:45px;background:#d50000;color:#fff;font-weight:bold;border:none;border-radius:12px;">Tutup</button>
+<button onclick="closeCalc()" style="margin-top:10px;width:100%;height:45px;background:#d50000;color:#fff;font-weight:400;border:none;border-radius:12px;">Tutup</button>
 </div>
 </div>
 <!-- INPUT MODAL -->
@@ -1555,7 +1535,7 @@ padding:10px;
 <div class="btn-row">
 <button class="btn" onclick="simpanInput()">Simpan</button>
 </div>
-<button onclick="closeInputModal()" style="margin-top:10px;width:100%;height:50px;background:#d50000;color:#fff;font-weight:bold;border:none;border-radius:10px;">Tutup</button>
+<button onclick="closeInputModal()" style="margin-top:10px;width:100%;height:50px;background:#d50000;color:#fff;font-weight:400;border:none;border-radius:10px;">Tutup</button>
 </div>
 </div>
 
@@ -1588,7 +1568,7 @@ function navigateStock(direction){const next=stockSequence[stockSequence.indexOf
 saveStock=function(){if(!commitStock())return;stockModal.style.display='none';keepFocus()};
 function toggleStockEntry(){stockEntryMode=!stockEntryMode;document.getElementById('stockEntryBtn').classList.toggle('stock-active',stockEntryMode);document.getElementById('stockEntryBtn').setAttribute('aria-pressed',String(stockEntryMode));document.getElementById('stockEntryHint').hidden=!stockEntryMode;keepFocus()}
 const stockHint=document.createElement('div');stockHint.id='stockEntryHint';stockHint.className='stock-entry-hint';stockHint.hidden=true;stockHint.textContent='Input Stock aktif · Ketuk item. Tekan Input Stock lagi untuk kembali ke Qty.';document.getElementById('mainHeader').before(stockHint);
-list.addEventListener('click',function(e){if(!stockEntryMode)return;const row=e.target.closest('.item');if(!row||e.target.closest('[onclick*="hapus("]'))return;const target=row.querySelector('[onclick*="openModal("],[onclick*="openGudangModal("]')||row;const match=(target.getAttribute('onclick')||'').match(/(?:openModal|openGudangModal)\((\d+)\)/);if(match){e.stopImmediatePropagation();e.preventDefault();clickStock(Number(match[1]))}},true);
+list.addEventListener('click',function(e){if(!stockEntryMode||e.target.closest('.stock-readonly-cell'))return;const row=e.target.closest('.item');if(!row||e.target.closest('[onclick*="hapus("]'))return;const target=row.querySelector('[onclick*="openModal("],[onclick*="openGudangModal("]')||row;const match=(target.getAttribute('onclick')||'').match(/(?:openModal|openGudangModal)\((\d+)\)/);if(match){e.stopImmediatePropagation();e.preventDefault();clickStock(Number(match[1]))}},true);
 
 function syncBaseToolbar(){document.documentElement.style.setProperty('--toolbar-height',document.querySelector('.top').offsetHeight+'px')}
 if(window.ResizeObserver)new ResizeObserver(syncBaseToolbar).observe(document.querySelector('.top'));window.addEventListener('resize',syncBaseToolbar);syncBaseToolbar();
@@ -1606,7 +1586,7 @@ document.querySelector('#m_plu').closest('p').after(qtyBarcodeRow);
 const qtyBarcodeStatus=document.createElement('p');qtyBarcodeStatus.id='qtyBarcodeStatus';qtyBarcodeStatus.className='qty-barcode-status';qtyBarcodeStatus.setAttribute('role','status');qtyBarcodeStatus.setAttribute('aria-live','polite');qtyBarcodeRow.after(qtyBarcodeStatus);
 const qtyOpenBeforeCopy=openModal;openModal=function(i){qtyOpenBeforeCopy(i);if(stockEntryMode)return;const value=String(data[i].barcode||'').trim();document.getElementById('qtyBarcodeValue').textContent=value||'Belum tersedia';document.getElementById('qtyBarcodeValue').disabled=!value;document.getElementById('qtyBarcodeCopy').disabled=!value;document.getElementById('qtyBarcodeCopy').textContent='Salin';qtyBarcodeStatus.textContent=''};
 async function copyQtyBarcode(){const itemIndex=idx;const value=String(data[itemIndex]?.barcode||'').trim();if(!value)return;let copied=false;try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);copied=true}}catch(e){}if(!copied){const field=document.createElement('textarea');field.value=value;field.readOnly=true;field.setAttribute('aria-label','Barcode untuk disalin');field.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';document.querySelector('#modal .modal-content').append(field);field.focus();field.select();field.setSelectionRange(0,value.length);try{copied=document.execCommand('copy')}catch(e){}field.remove()}
-if(idx!==itemIndex||modal.style.display!=='flex')return;if(copied){document.getElementById('qtyBarcodeCopy').textContent='✓ Tersalin';qtyBarcodeStatus.textContent='Barcode berhasil disalin.';closeDialog('modal')}else{const range=document.createRange();range.selectNodeContents(document.getElementById('qtyBarcodeValue'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);qtyBarcodeStatus.textContent='Tekan lama nomor barcode, lalu pilih Salin.'}}
+if(idx!==itemIndex||modal.style.display!=='flex')return;if(copied){document.getElementById('qtyBarcodeCopy').textContent='✓ Tersalin';qtyBarcodeStatus.textContent='Barcode berhasil disalin.';closeDialog('modal');showBarcodeToast()}else{const range=document.createRange();range.selectNodeContents(document.getElementById('qtyBarcodeValue'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);qtyBarcodeStatus.textContent='Tekan lama nomor barcode, lalu pilih Salin.'}}
 </script><style>
 #modal .qty-info-line,#modal .qty-barcode-row{display:grid!important;grid-template-columns:78px 8px minmax(0,1fr);align-items:center;column-gap:8px;margin:0!important;padding:10px 0;border-bottom:1px solid #e4e4e4;font-size:14px!important;line-height:1.4;text-align:left!important}
 #modal .qty-info-label,#modal .qty-colon{font-size:13px;font-weight:400;color:#555}
@@ -1620,5 +1600,176 @@ const barcodeValue=document.getElementById('qtyBarcodeValue'),barcodeCopy=docume
 // Respect Hide Stock while keeping grid alignment when visible.
 const openBeforeAlignment=openModal;openModal=function(i){openBeforeAlignment(i);if(!stockEntryMode)document.getElementById('stockInfo').hidden=!showStock};
 const toggleBeforeAlignment=toggleStock;toggleStock=function(){toggleBeforeAlignment();document.getElementById('stockInfo').hidden=!showStock};
-</script><style>#modal #stockInfo[hidden]{display:none!important}</style></body>
+</script><style>#modal #stockInfo[hidden]{display:none!important}</style><style>
+body{padding-bottom:85px}body.calc-open{overflow:hidden}
+.search-container{position:fixed!important;top:auto!important;bottom:var(--keyboard-inset,0px)!important;left:0;right:0;z-index:100;padding:8px 9px max(8px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #dce3e9;box-shadow:0 -3px 12px #25394a0b;display:flex;align-items:center;gap:7px}
+.search-inner{flex:1;min-width:0;margin:0;background:#f3f6fa!important;border:1px solid #cbd8e5!important;box-shadow:none!important;border-radius:11px}.search-inner:focus-within{border-color:#7f9fc1!important}.search-inner input{font-size:16px}.search-mode-group{gap:2px}.search-mode-btn{font-size:10px;padding:0 6px;min-width:30px}
+#calcBtn{position:static!important;inset:auto!important;transform:none!important;flex:0 0 44px;width:44px!important;height:44px!important;border-radius:10px!important;background:#526f91!important;font-size:18px!important;line-height:1!important;padding:0;color:white!important}
+#modal #m_input{background:#f5f8fc!important;border:1px solid #adc1d7!important;color:#304861;box-shadow:none!important;text-align:center!important;padding:8px!important;border-radius:11px}#modal #m_input::placeholder{text-align:center;color:#8c9bac;font-size:17px}
+#modal button[onclick="minusQty()"],#modal button[onclick="plusQty()"]{border:1px solid #c7d6e5!important;background:#e8eff7!important;color:#4a6787!important;font-size:23px!important;box-shadow:none!important;border-radius:11px!important;touch-action:manipulation}
+#modal button[onclick="plusQty()"]{background:#dce8f4!important;border-color:#b6cbe0!important}#modal .btn-row .btn{box-shadow:none!important;border-width:1px!important}#modal button[onclick="simpan()"]{background:#dcebe3!important;border-color:#b8cfbf!important;color:#3f6550!important}#modal button[onclick="resetQty()"]{background:#f3e7e7!important;border-color:#dfcaca!important;color:#8b6060!important}
+#calcModal{padding:0!important;background:#f5f7fa;z-index:12000;align-items:stretch!important;justify-content:stretch!important}#calcModal .modal-content{position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;height:100dvh;max-height:none!important;border-radius:0!important;box-shadow:none!important;padding:16px!important;display:flex;flex-direction:column;gap:12px;background:#f5f7fa;overflow:hidden}
+.calc-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.calc-head h3{margin:0!important;font-size:19px!important}.calc-back{padding:10px 13px;border-radius:9px;background:#dfe9f4;color:#345575;font-size:13px}.calc-tabs{display:flex;gap:6px;flex:none}.calc-tabs button{flex:1;padding:11px 3px;border-radius:9px;background:#e8edf3;color:#647588;font-size:13px}.calc-tabs button.active{background:#526f91;color:#fff}
+#calcMain{flex:1;min-height:0;display:flex;flex-direction:column;max-width:650px;width:100%;margin:0 auto;gap:12px}#calcDisplay{height:80px;flex:0 0 auto;margin:0;border:1px solid #d6e0ea;border-radius:12px;background:white;text-align:right;font-size:32px;color:#324b67;padding:16px}
+.calc-keys{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(5,minmax(35px,1fr));gap:9px}.calc-keys button{width:100%;height:100%;margin:0;border:1px solid #dce3ea;border-radius:12px;background:#fff;color:#3b4e63;font-size:24px;font-weight:400;box-shadow:none}.calc-keys button.operator{background:#e4ecf6;color:#456c97}.calc-keys button.equal{grid-column:span 4;background:#526f91;color:white}
+#multiplicationPanel{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;max-width:650px;width:100%;margin:0 auto}.times-row{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:white;border:1px solid #e0e6ec;border-radius:10px;margin-bottom:7px;font-size:20px;color:#42566d}.times-row span:last-child{color:#305b87}.calc-panel[hidden]{display:none!important}
+</style><script>
+// Keep qty input focused while touching the stepper, including on mobile.
+function standbyQtyKeyboard(){const field=document.getElementById('m_input');field.readOnly=false;field.setAttribute('inputmode','numeric');try{field.focus({preventScroll:true})}catch(e){field.focus()}try{field.setSelectionRange(field.value.length,field.value.length)}catch(e){}}
+const stepPlus=plusQty,stepMinus=minusQty;plusQty=function(){stepPlus();standbyQtyKeyboard()};minusQty=function(){stepMinus();standbyQtyKeyboard()};
+document.querySelectorAll('#modal button[onclick="plusQty()"],#modal button[onclick="minusQty()"]').forEach(b=>{b.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'||e.pointerType==='touch'||e.pointerType==='pen'){e.preventDefault();standbyQtyKeyboard()}});b.addEventListener('mousedown',e=>e.preventDefault())});
+const searchDock=document.querySelector('.search-container');searchDock.append(document.getElementById('calcBtn'));document.getElementById('calcBtn').innerHTML='<span>+ −</span><span>× ÷</span>';document.getElementById('calcBtn').setAttribute('aria-label','Buka kalkulator');
+setCenter=function(){};setUp=function(){};
+function dockToKeyboard(){const v=window.visualViewport;const bottom=v?Math.max(0,window.innerHeight-v.height-v.offsetTop):0;document.documentElement.style.setProperty('--keyboard-inset',bottom+'px');document.body.style.paddingBottom=(searchDock.offsetHeight+12)+'px'}
+if(window.visualViewport){visualViewport.addEventListener('resize',dockToKeyboard);visualViewport.addEventListener('scroll',dockToKeyboard)}window.addEventListener('resize',dockToKeyboard);dockToKeyboard();
+// Tapping search always allows typing; explicit SCAN mode remains available.
+search.addEventListener('pointerdown',()=>{if(searchMode!=='keyboard')setSearchMode('keyboard')});
+const calcBody=document.querySelector('#calcModal .modal-content');
+calcBody.innerHTML='<div class="calc-head"><button class="calc-back" onclick="closeCalc()">← Kembali ke SO</button><h3>Kalkulator</h3></div><div class="calc-tabs" role="tablist"><button role="tab" data-calc-tab="0" onclick="selectCalcTab(0)">Hitung</button><button role="tab" data-calc-tab="6" onclick="selectCalcTab(6)">× 6</button><button role="tab" data-calc-tab="12" onclick="selectCalcTab(12)">× 12</button><button role="tab" data-calc-tab="24" onclick="selectCalcTab(24)">× 24</button></div><div id="calcMain" class="calc-panel" role="tabpanel"><input id="calcDisplay" readonly aria-label="Hasil kalkulator"><div class="calc-keys" id="calcKeys"></div></div><div id="multiplicationPanel" class="calc-panel" role="tabpanel" hidden></div>';
+const keys=[['7','7'],['8','8'],['9','9'],['÷','/'],['4','4'],['5','5'],['6','6'],['×','*'],['1','1'],['2','2'],['3','3'],['−','-'],['0','0'],['⌫','back'],['C','clear'],['+','+'],['=','equals']];
+keys.forEach(([label,value])=>{const b=document.createElement('button');b.textContent=label;b.className=value==='equals'?'equal':/[+*/-]/.test(value)&&value.length===1?'operator':'';b.onclick=()=>{if(value==='back')backspace();else if(value==='clear')clearCalc();else if(value==='equals')calculate();else press(value)};document.getElementById('calcKeys').append(b)});
+function selectCalcTab(multiplier){document.querySelectorAll('[data-calc-tab]').forEach(b=>{const on=Number(b.dataset.calcTab)===multiplier;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});document.getElementById('calcMain').hidden=!!multiplier;const panel=document.getElementById('multiplicationPanel');panel.hidden=!multiplier;if(multiplier){panel.replaceChildren();for(let i=1;i<=20;i++){const row=document.createElement('div');row.className='times-row';const lhs=document.createElement('span'),rhs=document.createElement('span');lhs.textContent=i+' × '+multiplier;rhs.textContent='= '+i*multiplier;row.append(lhs,rhs);panel.append(row)}panel.scrollTop=0}}
+openCalc=function(){document.activeElement?.blur();document.body.classList.add('calc-open');document.getElementById('calcModal').style.display='flex';document.getElementById('calcDisplay').value='';selectCalcTab(0);document.querySelector('.calc-back').focus()};
+closeCalc=function(){document.getElementById('calcModal').style.display='none';document.body.classList.remove('calc-open');keepFocus()};
+const closeWithCalc=closeDialog;closeDialog=function(id){if(id==='calcModal'){closeCalc();return}closeWithCalc(id)};
+// Arithmetic only; no arbitrary expressions.
+calculate=function(){const display=document.getElementById('calcDisplay'),expression=display.value;if(!/^[0-9+*/().\s-]+$/.test(expression)){display.value='Error';return}try{const n=Function('"use strict";return ('+expression+')')();display.value=Number.isFinite(n)?n:'Error'}catch(e){display.value='Error'}};
+selectCalcTab(0);
+</script><style>
+.header{font-size:12px!important;font-weight:400}.item div{font-size:14px!important;font-weight:400!important;line-height:1.4}.item div:nth-child(3){min-height:2.8em;max-height:2.8em}.item div:nth-child(1){font-size:12px!important}.item div:nth-child(2){font-size:13px!important}.item.gudang-item div:nth-child(3){min-height:0;max-height:none}.item{padding-top:12px;padding-bottom:12px}.modal-content p,.modal-content label{font-size:17px!important;font-weight:400}.modal-content h3{font-size:22px!important;font-weight:400!important}.modal-content span,.modal-content b,.modal-content input{font-weight:400!important}.modal-content input{font-size:20px}.modal-content button{font-size:16px;font-weight:400}.modal-content textarea{font-size:16px!important}#modal .qty-info-line,#modal .qty-barcode-row{font-size:19px!important}#modal .qty-info-label,#modal .qty-colon{font-size:17px!important;font-weight:400!important}#modal #m_nama{font-size:22px!important;font-weight:400!important}#modal .qty-barcode-value{font-size:19px!important;font-weight:400!important}#modal .qty-barcode-copy{font-size:14px!important}#stockSaveHint{font-size:14px!important}#stockPosition{font-size:14px!important}#stockModal .stock-close-x{font-size:27px!important}#calcBtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:17px!important;font-weight:400;line-height:1.05!important}#calcBtn span{display:block;letter-spacing:1px}#barcodeToast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--keyboard-inset,0px) + 82px);width:calc(100% - 28px);max-width:430px;padding:15px 18px;background:#314d42;color:#fff;border:1px solid #456457;border-radius:11px;box-shadow:0 5px 20px #0002;z-index:25000;font:15px/1.5 Arial,sans-serif;text-align:left;pointer-events:none}#barcodeToast[hidden]{display:none}
+@media(max-width:370px){.header,.item{grid-template-columns:22px 46px minmax(0,1fr) 37px 37px 47px;gap:2px}.item div{font-size:13px!important}.item div:nth-child(2){font-size:12px!important}}
+</style><div id="barcodeToast" role="status" aria-live="polite" hidden></div><script>
+let barcodeToastTimer;
+function showBarcodeToast(){const toast=document.getElementById('barcodeToast');clearTimeout(barcodeToastTimer);toast.textContent='Barcode berhasil disalin siap dicek stock di aplikasi APO.';toast.hidden=false;barcodeToastTimer=setTimeout(()=>{toast.hidden=true},3500)}
+</script><style>
+#calcModal .modal-content{padding:0!important;gap:0!important;background:#eef2f7;color:#253d58;height:100dvh;max-height:100dvh!important}
+#calcModal .calc-head{flex:0 0 58px;padding:10px 15px;background:#fff;border-bottom:1px solid #e1e7ef}#calcModal .calc-head h3{font-size:17px!important;letter-spacing:-.3px}#calcModal .calc-back{font-size:12px!important;border:1px solid #d9e3ee;background:#f1f5fa;color:#3b587c;border-radius:10px;padding:9px 12px}
+#calcTopHalf{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:13px 14px 10px;gap:9px;background:#f0f4f9;border-bottom:1px solid #d6e0eb}
+.calc-section-caption{display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:1.4px;color:#788ba1;font-weight:400;flex:none}.calc-section-caption small{font-size:10px;font-weight:400;letter-spacing:0;color:#7e8e9f}
+#calcModal .calc-tabs{gap:7px;margin:0;flex:0 0 auto}#calcModal .calc-tabs button{background:#e3eaf3;border:1px solid transparent;color:#667d98;border-radius:10px;padding:9px 5px;font-size:14px!important;font-weight:400}#calcModal .calc-tabs button.active{background:#345e89;color:#fff;border-color:#345e89;box-shadow:0 3px 8px #345e8920}
+#calcModal #multiplicationPanel{max-width:780px;padding:0 2px 0 0;scrollbar-width:thin;scrollbar-color:#b1c3d7 transparent;flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-content:start}
+#calcModal .times-row{margin:0;padding:11px 12px;border:1px solid #dfe6ef;border-radius:10px;background:#fff;font-size:15px;min-height:43px;gap:8px}#calcModal .times-row span:first-child{font-size:14px!important;font-weight:400!important;color:#73849a}#calcModal .times-row span:last-child{font-size:17px!important;font-weight:400!important;color:#345e89}
+#calcModal #calcMain{flex:1 1 0;min-height:0;padding:12px 14px max(12px,env(safe-area-inset-bottom));gap:8px;max-width:780px;background:#eef2f7}
+#calcModal #calcDisplay{height:51px;flex:0 0 51px;border-radius:11px;border:1px solid #d7e0eb;background:#fff;padding:8px 14px;font-size:29px!important;font-weight:400!important;color:#294c72;box-shadow:inset 0 1px 3px #31465b05}
+#calcModal .calc-keys{gap:6px;grid-template-rows:repeat(5,minmax(0,1fr))}#calcModal .calc-keys button{min-height:0;border-radius:10px;border:1px solid #dce4ee;background:#fff;color:#38516f;font-size:21px!important;font-weight:400;box-shadow:0 2px 0 #d9e1ec;transition:background .12s,transform .12s;touch-action:manipulation}#calcModal .calc-keys button:active{transform:translateY(1px);box-shadow:none;background:#dce7f4}#calcModal .calc-keys .operator{background:#dce7f4;color:#315e8c;border-color:#cbdcf0}#calcModal .calc-keys .utility{background:#e8e3f2;color:#74618e;border-color:#dcd4ea}#calcModal .calc-keys .equal{background:#345e89;color:white;border-color:#345e89;box-shadow:0 2px 0 #254568}#calcModal button:focus-visible{outline:2px solid #6b9acb;outline-offset:2px}
+@media(max-width:350px){#calcModal .times-row{padding:10px 8px}#calcModal .times-row span:first-child{font-size:12px!important}#calcModal .times-row span:last-child{font-size:15px!important}}
+@media(max-height:550px){#calcModal .calc-head{flex-basis:42px;padding:5px 12px}#calcTopHalf{padding:6px 12px;gap:4px}#calcModal #calcMain{padding:6px 12px;gap:4px}#calcModal #calcDisplay{height:36px;flex-basis:36px;font-size:23px!important}#calcModal .calc-tabs button{padding:5px}#calcModal .calc-keys{gap:4px}#calcModal .calc-keys button{font-size:16px!important}.calc-section-caption{display:none}}
+</style><script>
+const calcTopHalf=document.createElement('section');calcTopHalf.id='calcTopHalf';calcTopHalf.setAttribute('aria-label','Tabel perkalian');
+const calcHeading=document.createElement('div');calcHeading.className='calc-section-caption';calcHeading.innerHTML='TABEL PERKALIAN <small>1–20 · Geser untuk melihat</small>';calcTopHalf.append(calcHeading);
+const multiplicationTabs=document.querySelector('#calcModal .calc-tabs');multiplicationTabs.querySelector('[data-calc-tab="0"]').remove();calcTopHalf.append(multiplicationTabs,document.getElementById('multiplicationPanel'));document.querySelector('#calcModal .calc-head').after(calcTopHalf);
+let selectedMultiplier=6;
+selectCalcTab=function(multiplier){if(![6,12,24].includes(multiplier))multiplier=selectedMultiplier;selectedMultiplier=multiplier;document.querySelectorAll('[data-calc-tab]').forEach(b=>{const on=Number(b.dataset.calcTab)===multiplier;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});document.getElementById('calcMain').hidden=false;const panel=document.getElementById('multiplicationPanel');panel.hidden=false;panel.replaceChildren();for(let i=1;i<=20;i++){const row=document.createElement('div');row.className='times-row';const lhs=document.createElement('span'),rhs=document.createElement('span');lhs.textContent=i+' × '+multiplier;rhs.textContent='= '+i*multiplier;row.append(lhs,rhs);panel.append(row)}panel.scrollTop=0};
+document.querySelectorAll('#calcKeys button').forEach(b=>{if(['C','⌫'].includes(b.textContent))b.classList.add('utility')});
+selectCalcTab(6);
+</script><style>
+#modal #m_input{ text-align:center!important;padding-left:8px!important;padding-right:8px!important }
+#modal #m_input::placeholder{text-align:center!important}
+#actionToast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--keyboard-inset,0px) + 82px);width:calc(100% - 28px);max-width:430px;padding:14px 17px;background:#314c69;color:white;border:1px solid #456482;border-radius:11px;box-shadow:0 5px 20px #0002;z-index:25001;font:15px/1.5 Arial,sans-serif;pointer-events:none;text-align:left}#actionToast[hidden]{display:none}body.calc-open #actionToast{bottom:auto;top:65px}
+</style><div id="actionToast" role="status" aria-live="polite" hidden></div><script>
+let actionToastTimer;
+function showActionToast(message){const toast=document.getElementById('actionToast');clearTimeout(actionToastTimer);toast.textContent=message;toast.hidden=false;actionToastTimer=setTimeout(()=>{toast.hidden=true},3500)}
+// Capture first, so the read-only stock cell gives guidance even in stock-entry mode.
+list.addEventListener('click',function(e){if(!e.target.closest('.stock-readonly-cell'))return;e.preventDefault();e.stopImmediatePropagation();showActionToast('Untuk input stock ada di menu "Input Stock" di bagian atas.');},true);
+const openCalcBeforeNotice=openCalc;openCalc=function(){openCalcBeforeNotice();showActionToast('Silahkan gunakan tabel perkalian agar lebih cepat menghitung.')};
+const closeCalcBeforeNotice=closeCalc;closeCalc=function(){closeCalcBeforeNotice();clearTimeout(actionToastTimer);document.getElementById('actionToast').hidden=true};
+</script><script>
+let stockScanGuideShown=false;
+const stockOpenBeforeGuide=clickStock;
+clickStock=function(i,keepSequence=false){stockOpenBeforeGuide(i,keepSequence);if(stockEntryMode&&!stockScanGuideShown){stockScanGuideShown=true;showActionToast('Silahkan scan barcode PLU ini agar cepat cek stock di Inventory.')}};
+</script><style>
+#barcodeToast,#actionToast,body.calc-open #actionToast{position:fixed!important;top:50%!important;left:50%!important;bottom:auto!important;right:auto!important;transform:translate(-50%,-50%)!important;width:calc(100% - 36px);max-width:430px;background:#fff3bf!important;color:#685014!important;border:1px solid #e9cc70!important;border-radius:13px;padding:18px 18px 18px 51px!important;box-shadow:0 8px 28px #5d490d26;font-size:15px;line-height:1.55;text-align:left;pointer-events:none}
+#barcodeToast::before,#actionToast::before{content:'ℹ️';position:absolute;left:17px;top:18px;font-size:22px;line-height:1.25}
+</style><script>
+// Keep notifications legible rather than overlapping at the same screen position.
+const showBarcodeBeforeCenter=showBarcodeToast;showBarcodeToast=function(){clearTimeout(actionToastTimer);document.getElementById('actionToast').hidden=true;showBarcodeBeforeCenter()};
+const showActionBeforeCenter=showActionToast;showActionToast=function(message){clearTimeout(barcodeToastTimer);document.getElementById('barcodeToast').hidden=true;showActionBeforeCenter(message)};
+</script><script>
+const openQtyBeforeBarcodeGuide=openModal;
+openModal=function(i){openQtyBeforeBarcodeGuide(i);if(!stockEntryMode&&modal.style.display==='flex')showActionToast('Jika butuh barcode dapat salin barcode di menu informasi di atas.')};
+</script><style>
+/* Preserve enlarged font sizes; remove bold throughout the app. */
+html body,html body *{font-weight:400!important}
+</style><style>
+#calcModal .calc-back{background:#c94c54!important;border:1px solid #b63b44!important;color:#fff!important;box-shadow:0 2px 5px #b63b4420}
+.top{position:sticky;overflow:visible;padding:9px 8px;border-bottom:1px solid #dce4ec;background:#fff}.top-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) 35px;gap:5px;align-items:stretch}.top-actions>button{min-width:0;min-height:43px;padding:7px 3px;font-size:11px;line-height:1.3;border-radius:9px;border:1px solid #dce5ee;background:#edf3f9;color:#3c5c7a}.top-actions>button:nth-child(1),.top-actions>button:nth-child(2){background:#edf3f9!important;color:#3c5c7a!important}.top-actions>button:nth-child(4){background:#f9e9e9!important;color:#9b5056;border-color:#ecd3d5}.top-actions>#stockEntryBtn{background:#dfeef0;color:#397079;border-color:#c5dfe2}.top-actions>#stockEntryBtn.stock-active{background:#3f7b86!important;color:#fff!important;outline:0}.top-actions>#moreActionsBtn{font-size:25px;padding:0;background:#eef1f5;color:#53687c}
+#moreActionsMenu{position:absolute;right:8px;top:calc(100% + 5px);z-index:300;width:200px;padding:6px;background:#fff;border:1px solid #dce4ed;box-shadow:0 8px 25px #26394b25;border-radius:11px}#moreActionsMenu[hidden]{display:none}#moreActionsMenu button{display:block;width:100%;text-align:left;padding:12px 10px;background:#fff!important;color:#41576b!important;border:0!important;border-radius:7px;font-size:14px}#moreActionsMenu button:hover{background:#edf3f8!important}
+.search-container{gap:8px!important;background:#f7faff!important;border-top:1px solid #d2deeb!important;padding:9px 10px max(9px,env(safe-area-inset-bottom))!important;box-shadow:0 -3px 14px #34547610!important}.search-inner,.search-inner.keyboard-active{background:#e8f1fb!important;border:1px solid #a8c3df!important;border-radius:13px!important;padding:5px 10px!important;gap:7px!important;min-height:47px}.search-inner:focus-within{background:#f1f7ff!important;border-color:#5586b7!important;box-shadow:0 0 0 2px #5586b71a!important}.search-inner input{font-size:16px;color:#284f74!important;padding:7px 0!important}.search-inner input::placeholder{font-size:14px;color:#6785a2!important}.search-magnifier{width:20px;height:20px;flex:0 0 20px;fill:none;stroke:#4b79a4;stroke-width:1.8;stroke-linecap:round}.search-inner .search-clear{order:3;width:27px;flex:0 0 27px;height:29px;background:#d7e5f4;border:0;color:#5b7b9a;border-radius:8px}.search-clear:not(.visible){display:none}.search-container #calcBtn{flex:0 0 47px!important;width:47px!important;height:47px!important;border-radius:13px!important;border:1px solid #537fa9!important;background:#567fa8!important;box-shadow:0 2px 5px #34547615!important;color:white!important}
+</style><script>
+const toolbar=document.querySelector('.top-actions'),moreMenu=document.createElement('div');moreMenu.id='moreActionsMenu';moreMenu.hidden=true;moreMenu.setAttribute('aria-label','Menu lainnya');
+['button[onclick="openInputModal()"]','#importBtn','#toggleBtn','#markGudangBtn'].forEach(selector=>moreMenu.append(toolbar.querySelector(selector)));
+const toolbarActions=['button[onclick="exportPDF()"]','button[onclick="openReport()"]','#stockEntryBtn','button[onclick="resetAll()"]'];toolbarActions.forEach(selector=>toolbar.append(toolbar.querySelector(selector)));
+const moreButton=document.createElement('button');moreButton.id='moreActionsBtn';moreButton.textContent='⋮';moreButton.setAttribute('aria-label','Menu lainnya');moreButton.setAttribute('aria-expanded','false');moreButton.setAttribute('aria-controls','moreActionsMenu');toolbar.append(moreButton);document.querySelector('.top').append(moreMenu);
+function hideMoreMenu(){moreMenu.hidden=true;moreButton.setAttribute('aria-expanded','false')}
+moreButton.onclick=()=>{moreMenu.hidden=!moreMenu.hidden;moreButton.setAttribute('aria-expanded',String(!moreMenu.hidden))};moreMenu.addEventListener('click',e=>{if(e.target.closest('button'))hideMoreMenu()});document.addEventListener('click',e=>{if(!moreMenu.contains(e.target)&&!moreButton.contains(e.target))hideMoreMenu()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!moreMenu.hidden){hideMoreMenu();moreButton.focus()}});
+const toggleStockModeBeforeLabel=toggleStockEntry;toggleStockEntry=function(){toggleStockModeBeforeLabel();document.getElementById('stockEntryBtn').textContent=stockEntryMode?'Input Qty':'Input Stock';document.getElementById('stockEntryHint').textContent='Input Stock aktif · Ketuk item. Tekan Input Qty untuk kembali ke hitungan qty.'};
+const magnifier=document.createElementNS('http://www.w3.org/2000/svg','svg');magnifier.setAttribute('viewBox','0 0 24 24');magnifier.setAttribute('class','search-magnifier');magnifier.setAttribute('aria-hidden','true');magnifier.innerHTML='<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>';searchInner.prepend(magnifier);
+syncBaseToolbar();dockToKeyboard();
+</script><style>
+/* Redesigned search dock only. */
+.search-container{background:#f3f5f8!important;border-top:1px solid #e1e6ed!important;padding:10px 12px max(10px,env(safe-area-inset-bottom))!important;box-shadow:0 -5px 20px #22344908!important;gap:0!important;align-items:stretch!important}
+.search-dock-shell{display:flex;align-items:center;gap:7px;width:100%;padding:6px;background:#fff;border:1px solid #d9e1eb;border-radius:19px;box-shadow:0 3px 12px #29445c0a;transition:border-color .15s,box-shadow .15s}
+.search-dock-shell:focus-within{border-color:#7b9cc2;box-shadow:0 0 0 3px #6f94bf14,0 3px 12px #29445c0a}
+.search-container .search-inner,.search-container .search-inner.keyboard-active,.search-container .search-inner:focus-within{flex:1;min-width:0;min-height:44px;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:0 5px 0 9px!important;gap:10px!important}
+.search-container .search-magnifier{width:21px;height:21px;flex-basis:21px;stroke:#7891ac;stroke-width:1.8}
+.search-container .search-inner input{height:44px!important;width:100%;padding:0!important;margin:0!important;background:transparent!important;color:#283e57!important;font-size:16px!important;line-height:normal;letter-spacing:.1px}
+.search-container .search-inner input::placeholder{color:#9ba7b5!important;font-size:14px!important;letter-spacing:0}
+.search-container .search-inner .search-clear{flex:0 0 24px;width:24px;height:24px;min-height:24px;padding:0;background:#eef2f6!important;color:#8190a1;border:0;border-radius:50%;font-size:18px;line-height:1}
+.search-dock-divider{width:1px;height:27px;flex:0 0 1px;background:#e9edf3;margin-right:1px}
+.search-container #calcBtn{position:static!important;flex:0 0 45px!important;width:45px!important;height:45px!important;border-radius:13px!important;background:#eaf0f8!important;color:#577aa1!important;border:1px solid #dce6f2!important;box-shadow:none!important;padding:0!important;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.search-container #calcBtn:hover{background:#dfeaf6!important}.search-container #calcBtn:active{background:#d5e4f3!important}.search-container #calcBtn svg{display:block;width:25px;height:25px;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
+@media(prefers-reduced-motion:reduce){.search-dock-shell,.search-container #calcBtn{transition:none}}
+</style><script>
+const redesignedDock=document.createElement('div');redesignedDock.className='search-dock-shell';const dockDivider=document.createElement('span');dockDivider.className='search-dock-divider';dockDivider.setAttribute('aria-hidden','true');const dockCalculator=document.getElementById('calcBtn');redesignedDock.append(searchInner,dockDivider,dockCalculator);searchDock.append(redesignedDock);
+search.placeholder='Cari nama, PLU, atau barcode';search.setAttribute('aria-label','Cari nama, PLU, atau barcode');
+dockCalculator.innerHTML='<svg viewBox="0 0 28 28" aria-hidden="true"><path d="M7 4v6M4 7h6M18 7h6M5 18l5 5M10 18l-5 5M18 21h6"/><circle cx="21" cy="17" r=".8" fill="currentColor" stroke="none"/><circle cx="21" cy="25" r=".8" fill="currentColor" stroke="none"/></svg>';
+const manualModeForDock=setSearchMode;setSearchMode=function(){manualModeForDock();search.placeholder='Cari nama, PLU, atau barcode'};
+dockToKeyboard();
+</script><style>
+.search-container .search-inner .search-clear{order:0!important}
+.search-container .search-inner input{order:1!important}
+.search-container .search-magnifier{order:2!important}
+</style><script>
+searchInner.replaceChildren(document.getElementById('clearBtn'),search,document.querySelector('.search-magnifier'));
+</script><style>
+/* Stronger colors only; preserve layout and typography. */
+body button{background:#385f8d!important;color:#fff!important;border:1px solid #2c507a!important;box-shadow:none!important}
+body button:hover{filter:brightness(.95)}body button:active{filter:brightness(.86)}body button:disabled{opacity:.4}
+.top-actions>button:nth-child(1),.top-actions>button:nth-child(2){background:#315d90!important;color:#fff!important;border-color:#244b79!important}
+.top-actions>button:nth-child(4),#calcModal .calc-back{background:#bd3e4a!important;color:#fff!important;border-color:#a52f3a!important}
+.top-actions>#stockEntryBtn{background:#187873!important;color:#fff!important;border-color:#11645f!important}.top-actions>#stockEntryBtn.stock-active{background:#115751!important;color:#fff!important;border-color:#0b443f!important}
+.top-actions>#moreActionsBtn{background:#405267!important;color:white!important;border-color:#314357!important}
+#moreActionsMenu button{background:#edf2f8!important;color:#203e61!important;border:1px solid #d5dfeb!important;margin:3px 0}#moreActionsMenu button:hover{background:#dce6f2!important}
+#modal button[onclick="minusQty()"],#modal button[onclick="plusQty()"]{background:#3b6595!important;color:white!important;border:1px solid #2b517f!important}
+#modal button[onclick="simpan()"]{background:#247653!important;color:white!important;border-color:#185e40!important}#modal button[onclick="resetQty()"]{background:#b94651!important;color:white!important;border-color:#9f333e!important}
+#modal .qty-barcode-copy{background:#376390!important;color:white!important;border-color:#284e78!important}#modal .qty-barcode-value{background:transparent!important;color:#28486b!important;border:0!important}
+#stockModal .stock-close-x{background:#b94651!important;color:#fff!important;border-color:#9f333e!important}
+#calcModal .calc-tabs button{background:#dce5ef!important;color:#25466e!important;border:1px solid #a8bfd6!important}#calcModal .calc-tabs button.active{background:#2b5789!important;color:#fff!important;border-color:#234b79!important}
+#calcModal .calc-keys button{background:#dfe7f1!important;color:#203e63!important;border:1px solid #a9bed4!important}#calcModal .calc-keys .operator{background:#446e9e!important;color:#fff!important;border-color:#345d8a!important}#calcModal .calc-keys .utility{background:#71608d!important;color:#fff!important;border-color:#5d4e78!important}#calcModal .calc-keys .equal{background:#244f81!important;color:#fff!important;border-color:#193e69!important}
+.search-container{background:#e2eaf4!important;border-top:1px solid #a6bcd4!important}.search-dock-shell{background:#f7faff!important;border:2px solid #4d76a5!important;box-shadow:0 3px 12px #24476c18!important}.search-dock-shell:focus-within{border-color:#234f83!important;box-shadow:0 0 0 3px #426fa525!important}
+.search-container .search-inner input{color:#183e6b!important}.search-container .search-inner input::placeholder{color:#557291!important}.search-container .search-magnifier{stroke:#2c578a!important}.search-dock-divider{background:#b5c7dc!important}
+.search-container .search-inner .search-clear{background:#bd4651!important;color:white!important;border:1px solid #a83641!important}
+.search-container #calcBtn{background:#2e5c91!important;color:white!important;border:1px solid #224c7e!important}.search-container #calcBtn:hover,.search-container #calcBtn:active{background:#234b79!important}
+</style><style>
+body button{background:#bdd0ec!important;color:#304b70!important;border-color:#94afd3!important}
+.top-actions>button:nth-child(1),.top-actions>button:nth-child(2){background:#bdd0ec!important;color:#304b70!important;border-color:#94afd3!important}
+.top-actions>button:nth-child(4),#calcModal .calc-back{background:#ecadb3!important;color:#7e3540!important;border-color:#d78c96!important}
+.top-actions>#stockEntryBtn{background:#add9cc!important;color:#295e50!important;border-color:#83baa9!important}.top-actions>#stockEntryBtn.stock-active{background:#85c4b1!important;color:#204f42!important;border-color:#64a58f!important}
+.top-actions>#moreActionsBtn{background:#c5c8e4!important;color:#494d77!important;border-color:#a3a8cf!important}
+#moreActionsMenu button{background:#e3e7f3!important;color:#3c4d71!important;border-color:#c0c9df!important}
+#modal button[onclick="minusQty()"],#modal button[onclick="plusQty()"]{background:#c5c3e8!important;color:#504d7b!important;border-color:#a6a2cd!important}
+#modal button[onclick="simpan()"]{background:#acd5b9!important;color:#305c40!important;border-color:#83b795!important}#modal button[onclick="resetQty()"]{background:#e9b6bc!important;color:#7e414a!important;border-color:#d2939d!important}
+#modal .qty-barcode-copy{background:#b9cfe8!important;color:#345578!important;border-color:#91afd0!important}#modal .qty-barcode-value{background:transparent!important;color:#375878!important;border:0!important}
+#stockModal .stock-close-x{background:#ecadb3!important;color:#7e3540!important;border-color:#d78c96!important}
+#calcModal .calc-tabs button{background:#ced9eb!important;color:#3c5679!important;border-color:#a8bed9!important}#calcModal .calc-tabs button.active{background:#a8bee0!important;color:#304d76!important;border-color:#819fc8!important}
+#calcModal .calc-keys button{background:#dde5f0!important;color:#3a506e!important;border-color:#b5c5dc!important}#calcModal .calc-keys .operator{background:#b8cdec!important;color:#34537d!important;border-color:#91abd0!important}#calcModal .calc-keys .utility{background:#d0bfdf!important;color:#655074!important;border-color:#b69dc9!important}#calcModal .calc-keys .equal{background:#adc3e4!important;color:#2e4c77!important;border-color:#89a5ce!important}
+.search-container{background:transparent!important;border-top:0!important;box-shadow:none!important}
+.search-dock-shell{background:#dcd8ed!important;border:1px solid #b4accd!important;box-shadow:0 3px 12px #5c53731a!important;border-radius:19px!important}
+.search-dock-shell:focus-within{border-color:#9484b9!important;box-shadow:0 0 0 3px #aa9ac523!important}
+.search-container .search-inner,.search-container .search-inner.keyboard-active,.search-container .search-inner:focus-within,.search-container .search-inner input{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important}
+.search-container .search-inner input{color:#4b4068!important}.search-container .search-inner input::placeholder{color:#756a8e!important}
+.search-container .search-magnifier{stroke:#76648f!important}.search-dock-divider{background:#b8adce!important}
+.search-container .search-inner .search-clear{background:#e8b5bf!important;color:#854657!important;border:1px solid #ce95a2!important}
+.search-container #calcBtn{background:#bdb0d9!important;color:#51406f!important;border:1px solid #a08fc1!important}.search-container #calcBtn:hover,.search-container #calcBtn:active{background:#ae9fcf!important}
+</style></body>
 </html>
