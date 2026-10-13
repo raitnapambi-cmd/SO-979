@@ -1972,5 +1972,55 @@ body:not(.so-stock-view) #mainHeader{background:#f3eddb;}
 #stockModal #stockModalBarcode.plu-barcode code{white-space:nowrap;font-size:13px!important;}
 #stockModal #stockModalBarcode.plu-barcode small{font-size:9px!important;white-space:nowrap;}
 </style>
+
+<style>
+/* Hasil pencarian muncul tepat di ATAS search bar bawah, dimulai dari bawah ke atas. */
+body.search-results-active #mainHeader{display:none!important}
+body.search-results-active #list{
+ position:fixed!important;
+ left:9px;right:9px;
+ bottom:calc(var(--keyboard-inset, 0px) + var(--search-dock-height, 70px) + 5px)!important;
+ top:auto!important;
+ z-index:99;
+ display:flex!important;
+ flex-direction:column-reverse!important;
+ gap:5px;
+ max-height:min(53dvh, 370px);
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ padding:6px 3px 7px;
+ border-radius:12px;
+ background:rgba(248,250,255,.97);
+ box-shadow:0 -5px 18px rgba(32,49,76,.13);
+ scrollbar-width:thin;
+}
+body.search-results-active #list .item{
+ flex:0 0 auto;
+ width:auto;
+ margin:0 3px!important;
+ min-height:52px;
+ box-shadow:0 2px 5px #273a5214;
+}
+body.search-results-active #list:empty{display:none!important}
+</style>
+<script>
+(function(){
+ const field=document.getElementById('search');
+ const dock=document.querySelector('.search-container');
+ function syncDockHeight(){
+  if(dock)document.documentElement.style.setProperty('--search-dock-height',Math.ceil(dock.getBoundingClientRect().height)+'px');
+ }
+ function syncSearchResults(){
+  document.body.classList.toggle('search-results-active',!!field.value.trim());
+  syncDockHeight();
+ }
+ const oldRender=render;
+ render=function(){oldRender();syncSearchResults();};
+ field.addEventListener('input',syncSearchResults);
+ if(window.ResizeObserver&&dock)new ResizeObserver(syncDockHeight).observe(dock);
+ window.addEventListener('resize',syncDockHeight);
+ syncSearchResults();
+})();
+</script>
 </body>
 </html>
