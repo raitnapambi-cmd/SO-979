@@ -639,7 +639,29 @@ button{
   border-radius:16px 16px 0 0;box-sizing:border-box;animation:sheetUp .35s ease;
 }
 </style>
-</head>
+<style>
+/* Minimal polish only: original layout and palette retained. */
+*{box-sizing:border-box}.top-actions{flex-wrap:wrap}.top-actions button{flex:1 1 65px;min-height:36px;border-radius:7px}.top{z-index:20}.search-container{top:var(--toolbar-height,60px)}.header,.item{grid-template-columns:28px 52px minmax(0,2.2fr) 42px 42px 51px;gap:3px}.item{min-height:52px}.item div:nth-child(3){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.35;min-height:2.7em;max-height:2.7em;word-break:break-word;white-space:normal}.item div:nth-child(1),.item div:nth-child(2),.item div:nth-child(4),.item div:nth-child(5),.item div:nth-child(6){font-weight:800;font-variant-numeric:tabular-nums}.item.gudang-item div:nth-child(2){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;min-height:2.7em;max-height:2.7em}.item.gudang-item div:nth-child(3){display:block;min-height:0;max-height:none;font-weight:800}.header.gudang-view,.item.gudang-item{grid-template-columns:70px minmax(0,1fr) 82px}.modal-content span,.modal-content b,.modal-content input{font-weight:800;font-variant-numeric:tabular-nums}.modal-content{max-height:90dvh;overflow:auto}#reportModal .modal-content{max-width:420px;width:94%}#reportText{width:100%;height:220px;resize:vertical;padding:10px;border:1px solid #ccc;border-radius:8px;font:13px/1.7 monospace}#reportModal p{font-size:12px}.plu-barcode{background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px;margin:12px auto;max-width:340px;text-align:center}.plu-barcode svg{display:block;width:100%;height:60px}.plu-barcode code{display:block;font-size:16px;font-weight:800;margin-top:6px}.plu-barcode small{font-size:11px;color:#666}.stock-nav{display:flex;gap:8px;align-items:center;margin-top:12px}.stock-nav button{flex:1;padding:10px 5px;border-radius:8px;background:#bbdefb;font-size:12px}.stock-nav button:disabled{opacity:.4}.stock-nav span{font-size:11px;white-space:nowrap}.stock-active{outline:2px solid #4c87bd}.stock-entry-hint{font-size:11px;padding:7px 10px;color:#365a78;background:#eaf3fa}#stockSaveHint{font-size:11px!important;color:#63727c}@media(max-width:370px){.header,.item{grid-template-columns:24px 43px minmax(0,1fr) 35px 35px 45px;gap:2px}.item{margin-inline:6px;padding-inline:5px}}
+</style><style>
+/* Requested refinement only. */
+.item div,.modal-content span,.modal-content b,.modal-content input,.plu-barcode code{font-weight:400!important}
+#stockModal .plu-barcode{width:100%;max-width:600px;padding:18px 8px;margin:15px auto}
+#stockModal .plu-barcode svg{width:100%;height:120px}
+#stockModal .plu-barcode code{font-size:20px;margin-top:8px}
+#stockModal .modal-content>h3{padding-right:42px}
+.stock-close-x{position:absolute;right:12px;top:10px;width:36px;height:36px;padding:0;border:0;border-radius:8px;background:#eee;color:#444;font-size:27px;line-height:1;cursor:pointer}
+#modal .modal-content,#modal .modal-content h3,#modal .modal-content p{text-align:left!important}
+#modal #m_input{text-align:left!important;padding-left:14px}
+</style><style>
+#modal .qty-info-line,#modal .qty-barcode-row{grid-template-columns:92px 10px minmax(0,1fr);font-size:18px!important;padding:12px 0;line-height:1.45}
+#modal .qty-info-label,#modal .qty-colon{font-size:16px}
+#modal #m_nama{font-size:20px;line-height:1.45}
+#modal .qty-barcode-value{font-size:18px}
+#modal .qty-barcode-copy{font-size:13px;padding:7px 11px}
+#modal .qty-barcode-status{font-size:13px!important}
+#modal #m_input{font-size:24px}
+#modal .btn-row .btn{font-size:17px}
+</style></head>
 <body>
 <div class="top">
 <div class="top-actions">
@@ -648,7 +670,7 @@ button{
 <button id="importBtn" type="button" onclick="openImport()">⬆ Import</button>
 <button class="" id="toggleBtn" onclick="toggleStock()">Hide Stock</button>
 <button id="markGudangBtn" onclick="markStockGudang()">📦 Mark Gudang</button>
-<button onclick="exportPDF()">Export PDF</button>
+<button onclick="exportPDF()">Export PDF</button><button onclick="openReport()">Report Selisih</button><button id="stockEntryBtn" onclick="toggleStockEntry()">Input Stock</button>
 <input id="importFile" type="file" accept=".json,.txt,application/json,text/plain" style="display:none" onchange="importDataFile(event)">
 </div>
 </div>
@@ -1540,5 +1562,63 @@ padding:10px;
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</body>
+<div class="modal" id="reportModal" role="dialog" aria-modal="true" aria-label="Report Selisih"><div class="modal-content"><h3>Report Selisih</h3><p id="reportSummary"></p><p>Semua item selisih, termasuk yang tidak tampil di filter.</p><textarea id="reportText" readonly aria-label="Daftar selisih siap disalin"></textarea><div class="btn-row"><button class="btn" id="copyReportBtn" onclick="copyReport()">Salin report</button><button class="btn" onclick="closeDialog('reportModal')">Tutup</button></div><p id="copyStatus" role="status"></p></div></div>
+<script>
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function diff(x){return (Number(x.qty)||0)-(Number(x.stock)||0)}
+function signed(n){return n>0?'+'+n:String(n)}
+function reportLines(){return data.filter(x=>diff(x)!==0).map(x=>String(x.plu).replace(/\s/g,'')+' '+String(x.nama).replace(/\s+/g,' ').trim()+' '+signed(diff(x))).join('\n')}
+function openReport(){reportText.value=reportLines();const count=data.filter(x=>diff(x)!==0).length;reportSummary.textContent=count?count+' item perlu dicocokkan.':'Semua item klop. Tidak ada selisih.';copyReportBtn.disabled=!count;copyStatus.textContent='';reportModal.style.display='flex';copyReportBtn.focus()}
+async function copyReport(){try{await navigator.clipboard.writeText(reportText.value);copyStatus.textContent='Report berhasil disalin.'}catch(e){reportText.focus();reportText.select();try{if(!document.execCommand('copy'))throw Error();copyStatus.textContent='Report berhasil disalin.'}catch(e){copyStatus.textContent='Tekan lama teks yang dipilih, lalu pilih Salin.'}}}
+function closeDialog(id){document.getElementById(id).style.display='none';keepFocus()}
+modalSedangTerbuka=function(){return [...document.querySelectorAll('.modal')].some(m=>m.style.display==='flex')};
+const patterns={"0": "BaBbBb", "1": "BbBaBb", "2": "BbBbBa", "3": "AbAbBc", "4": "AbAcBb", "5": "AcAbBb", "6": "AbBbAc", "7": "AbBcAb", "8": "AcBbAb", "9": "BbAbAc", "10": "BbAcAb", "11": "BcAbAb", "12": "AaBbCb", "13": "AbBaCb", "14": "AbBbCa", "15": "AaCbBb", "16": "AbCaBb", "17": "AbCbBa", "18": "BbCbAa", "19": "BbAaCb", "20": "BbAbCa", "21": "BaCbAb", "22": "BbCaAb", "23": "CaBaCa", "24": "CaAbBb", "25": "CbAaBb", "26": "CbAbBa", "27": "CaBbAb", "28": "CbBaAb", "29": "CbBbAa", "30": "BaBaBc", "31": "BaBcBa", "32": "BcBaBa", "33": "AaAcBc", "34": "AcAaBc", "35": "AcAcBa", "36": "AaBcAc", "37": "AcBaAc", "38": "AcBcAa", "39": "BaAcAc", "40": "BcAaAc", "41": "BcAcAa", "42": "AaBaCc", "43": "AaBcCa", "44": "AcBaCa", "45": "AaCaBc", "46": "AaCcBa", "47": "AcCaBa", "48": "CaCaBa", "49": "BaAcCa", "50": "BcAaCa", "51": "BaCaAc", "52": "BaCcAa", "53": "BaCaCa", "54": "CaAaBc", "55": "CaAcBa", "56": "CcAaBa", "57": "CaBaAc", "58": "CaBcAa", "59": "CcBaAa", "60": "CaDaAa", "61": "BbAdAa", "62": "DcAaAa", "63": "AaAbBd", "64": "AaAdBb", "65": "AbAaBd", "66": "AbAdBa", "67": "AdAaBb", "68": "AdAbBa", "69": "AaBbAd", "70": "AaBdAb", "71": "AbBaAd", "72": "AbBdAa", "73": "AdBaAb", "74": "AdBbAa", "75": "BdAbAa", "76": "BbAaAd", "77": "DaCaAa", "78": "BdAaAb", "79": "AcDaAa", "80": "AaAbDb", "81": "AbAaDb", "82": "AbAbDa", "83": "AaDbAb", "84": "AbDaAb", "85": "AbDbAa", "86": "DaAbAb", "87": "DbAaAb", "88": "DbAbAa", "89": "BaBaDa", "90": "BaDaBa", "91": "DaBaBa", "92": "AaAaDc", "93": "AaAcDa", "94": "AcAaDa", "95": "AaDaAc", "96": "AaDcAa", "97": "DaAaAc", "98": "DaAcAa", "99": "AaCaDa", "100": "AaDaCa", "101": "CaAaDa", "102": "DaAaCa", "103": "BaAdAb", "104": "BaAbAd", "105": "BaAbCb", "106": "BcCaAaB"};
+function barcodeSVG(value){if(!/^[ -~]+$/.test(value))return '<small>Format barcode belum didukung.</small>';let codes=[104,...Array.from(value,c=>c.charCodeAt(0)-32)];let check=104;codes.slice(1).forEach((v,i)=>check+=v*(i+1));codes.push(check%103,106);let x=12,rects='';codes.forEach(c=>{for(const ch of patterns[c]){const w=ch.toLowerCase().charCodeAt(0)-96;if(ch===ch.toUpperCase())rects+='<rect x="'+x+'" y="0" width="'+w+'" height="55"/>';x+=w}});return '<svg role="img" aria-label="Barcode '+esc(value)+'" viewBox="0 0 '+(x+12)+' 55" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="white"/><g fill="black">'+rects+'</g></svg>'}
+function showBarcode(container,i){let v=String(data[i].barcode||'').trim();container.innerHTML=v?barcodeSVG(v)+'<code>'+esc(v)+'</code><small>Barcode produk · Code 128</small>':'<small>Barcode belum tersedia untuk item ini.</small>'}
+let stockEntryMode=false,stockSequence=[];
+const stockContent=document.querySelector('#stockModal .modal-content');
+stockContent.querySelector('h3').insertAdjacentHTML('afterend','<div id="stockModalBarcode" class="plu-barcode"></div>');
+stockContent.insertAdjacentHTML('beforeend','<div class="stock-nav"><button id="stockPrev" onclick="navigateStock(-1)">← Sebelumnya</button><span id="stockPosition"></span><button id="stockNext" onclick="navigateStock(1)">Selanjutnya →</button></div><p id="stockSaveHint" role="status">Stock otomatis disimpan saat pindah item atau menekan ×.</p>');
+const baseQtyOpen=openModal;openModal=function(i){if(stockEntryMode)return clickStock(i);baseQtyOpen(i)};
+const baseGudangOpen=openGudangModal;openGudangModal=function(i){if(stockEntryMode)return clickStock(i);baseGudangOpen(i)};
+function matchingStockItems(){const key=search.value.toLowerCase();return data.map((x,i)=>({x,i})).filter(({x})=>{const d=diff(x);return [x.plu,x.nama,x.barcode].some(v=>String(v||'').toLowerCase().includes(key))&&(filterMode==='all'||filterMode==='klop'&&d===0||filterMode==='plus'&&d>0||filterMode==='minus'&&d<0||filterMode==='gudang'&&(Number(x.stockGudangQty)||0)>0)}).map(({i})=>i)}
+const baseStockOpen=clickStock;clickStock=function(i,keepSequence=false){if(!keepSequence){stockSequence=matchingStockItems();if(!stockSequence.includes(i))stockSequence=[i]}baseStockOpen(i);const plu=String(data[i].plu||'');document.getElementById('stockModalBarcode').innerHTML=barcodeSVG(plu)+'<code>'+esc(plu)+'</code><small>Barcode PLU · Code 128</small>';const pos=stockSequence.indexOf(i);document.getElementById('stockPosition').textContent=(pos+1)+' / '+stockSequence.length;document.getElementById('stockPrev').disabled=pos<=0;document.getElementById('stockNext').disabled=pos>=stockSequence.length-1;document.getElementById('stockSaveHint').textContent='Stock otomatis disimpan saat pindah item atau menekan ×.'};
+function commitStock(){const raw=s_input.value.trim();if(!/^-?\d+$/.test(raw)||!Number.isSafeInteger(Number(raw))){document.getElementById('stockSaveHint').textContent='Isi stock dengan angka bulat terlebih dahulu.';s_input.focus();return false}const old=data[idx].stock;data[idx].stock=Number(raw);try{save()}catch(e){data[idx].stock=old;document.getElementById('stockSaveHint').textContent='Stock belum tersimpan. Penyimpanan browser penuh atau tidak tersedia.';return false}render();return true}
+function navigateStock(direction){const next=stockSequence[stockSequence.indexOf(idx)+direction];if(next===undefined||!commitStock())return;clickStock(next,true)}
+saveStock=function(){if(!commitStock())return;stockModal.style.display='none';keepFocus()};
+function toggleStockEntry(){stockEntryMode=!stockEntryMode;document.getElementById('stockEntryBtn').classList.toggle('stock-active',stockEntryMode);document.getElementById('stockEntryBtn').setAttribute('aria-pressed',String(stockEntryMode));document.getElementById('stockEntryHint').hidden=!stockEntryMode;keepFocus()}
+const stockHint=document.createElement('div');stockHint.id='stockEntryHint';stockHint.className='stock-entry-hint';stockHint.hidden=true;stockHint.textContent='Input Stock aktif · Ketuk item. Tekan Input Stock lagi untuk kembali ke Qty.';document.getElementById('mainHeader').before(stockHint);
+list.addEventListener('click',function(e){if(!stockEntryMode)return;const row=e.target.closest('.item');if(!row||e.target.closest('[onclick*="hapus("]'))return;const target=row.querySelector('[onclick*="openModal("],[onclick*="openGudangModal("]')||row;const match=(target.getAttribute('onclick')||'').match(/(?:openModal|openGudangModal)\((\d+)\)/);if(match){e.stopImmediatePropagation();e.preventDefault();clickStock(Number(match[1]))}},true);
+
+function syncBaseToolbar(){document.documentElement.style.setProperty('--toolbar-height',document.querySelector('.top').offsetHeight+'px')}
+if(window.ResizeObserver)new ResizeObserver(syncBaseToolbar).observe(document.querySelector('.top'));window.addEventListener('resize',syncBaseToolbar);syncBaseToolbar();
+// Report must not lose selection to the existing PDA auto-focus.
+document.getElementById('reportModal').addEventListener('click',e=>{if(e.target.id==='reportModal')closeDialog('reportModal')});
+stockContent.querySelector('.btn-row').remove();
+const closeStock=document.createElement('button');closeStock.textContent='×';closeStock.className='stock-close-x';closeStock.setAttribute('aria-label','Simpan stock dan tutup');closeStock.onclick=()=>saveStock();stockContent.prepend(closeStock);
+const originalCloseDialog=closeDialog;closeDialog=function(id){if(id==='stockModal'){saveStock();return}originalCloseDialog(id)};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.modal').forEach(m=>{if(m.style.display==='flex')closeDialog(m.id)})}});
+</script><style>
+.qty-barcode-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:14px;flex-wrap:wrap}.qty-barcode-value{background:transparent;border:0;padding:3px 0;color:#333;font-size:14px;font-weight:400;overflow-wrap:anywhere;text-align:left;max-width:100%;user-select:text}.qty-barcode-copy{background:#e3edf7;color:#365a78;border:1px solid #c8d9e8;border-radius:7px;font-size:11px;padding:5px 9px;font-weight:400}.qty-barcode-copy:disabled{opacity:.45;cursor:default}.qty-barcode-status{font-size:11px!important;color:#377447;margin:2px 0 8px!important;min-height:15px}
+</style><script>
+const qtyBarcodeRow=document.createElement('div');qtyBarcodeRow.className='qty-barcode-row';qtyBarcodeRow.innerHTML='<span>Barcode:</span><button type="button" id="qtyBarcodeValue" class="qty-barcode-value" onclick="copyQtyBarcode()" title="Ketuk untuk menyalin barcode"></button><button type="button" id="qtyBarcodeCopy" class="qty-barcode-copy" onclick="copyQtyBarcode()">Salin</button>';
+document.querySelector('#m_plu').closest('p').after(qtyBarcodeRow);
+const qtyBarcodeStatus=document.createElement('p');qtyBarcodeStatus.id='qtyBarcodeStatus';qtyBarcodeStatus.className='qty-barcode-status';qtyBarcodeStatus.setAttribute('role','status');qtyBarcodeStatus.setAttribute('aria-live','polite');qtyBarcodeRow.after(qtyBarcodeStatus);
+const qtyOpenBeforeCopy=openModal;openModal=function(i){qtyOpenBeforeCopy(i);if(stockEntryMode)return;const value=String(data[i].barcode||'').trim();document.getElementById('qtyBarcodeValue').textContent=value||'Belum tersedia';document.getElementById('qtyBarcodeValue').disabled=!value;document.getElementById('qtyBarcodeCopy').disabled=!value;document.getElementById('qtyBarcodeCopy').textContent='Salin';qtyBarcodeStatus.textContent=''};
+async function copyQtyBarcode(){const itemIndex=idx;const value=String(data[itemIndex]?.barcode||'').trim();if(!value)return;let copied=false;try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);copied=true}}catch(e){}if(!copied){const field=document.createElement('textarea');field.value=value;field.readOnly=true;field.setAttribute('aria-label','Barcode untuk disalin');field.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';document.querySelector('#modal .modal-content').append(field);field.focus();field.select();field.setSelectionRange(0,value.length);try{copied=document.execCommand('copy')}catch(e){}field.remove()}
+if(idx!==itemIndex||modal.style.display!=='flex')return;if(copied){document.getElementById('qtyBarcodeCopy').textContent='✓ Tersalin';qtyBarcodeStatus.textContent='Barcode berhasil disalin.';closeDialog('modal')}else{const range=document.createRange();range.selectNodeContents(document.getElementById('qtyBarcodeValue'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);qtyBarcodeStatus.textContent='Tekan lama nomor barcode, lalu pilih Salin.'}}
+</script><style>
+#modal .qty-info-line,#modal .qty-barcode-row{display:grid!important;grid-template-columns:78px 8px minmax(0,1fr);align-items:center;column-gap:8px;margin:0!important;padding:10px 0;border-bottom:1px solid #e4e4e4;font-size:14px!important;line-height:1.4;text-align:left!important}
+#modal .qty-info-label,#modal .qty-colon{font-size:13px;font-weight:400;color:#555}
+#modal #m_nama{margin:0!important;padding:0!important;font-size:16px;line-height:1.4;font-weight:400;text-align:left;overflow-wrap:anywhere}
+#modal .qty-barcode-cell{display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap}#modal .qty-barcode-value{min-width:0;overflow-wrap:anywhere;font-size:14px}#modal .qty-barcode-status:empty{display:none}#modal .qty-barcode-status{margin:4px 0!important}
+</style><script>
+function alignQtyLine(node,label,value){node.classList.add('qty-info-line');node.replaceChildren();const text=document.createElement('span');text.className='qty-info-label';text.textContent=label;const colon=document.createElement('span');colon.className='qty-colon';colon.textContent=':';node.append(text,colon,value)}
+const nameValue=document.getElementById('m_nama');const nameLine=document.createElement('div');nameValue.before(nameLine);alignQtyLine(nameLine,'Nama Item',nameValue);
+['m_plu','m_stock','m_qty'].forEach((id,i)=>{const value=document.getElementById(id);alignQtyLine(value.closest('p'),['PLU','Stock','Qty'][i],value)});
+const barcodeValue=document.getElementById('qtyBarcodeValue'),barcodeCopy=document.getElementById('qtyBarcodeCopy');const barcodeCell=document.createElement('div');barcodeCell.className='qty-barcode-cell';barcodeCell.append(barcodeValue,barcodeCopy);alignQtyLine(qtyBarcodeRow,'Barcode',barcodeCell);
+// Respect Hide Stock while keeping grid alignment when visible.
+const openBeforeAlignment=openModal;openModal=function(i){openBeforeAlignment(i);if(!stockEntryMode)document.getElementById('stockInfo').hidden=!showStock};
+const toggleBeforeAlignment=toggleStock;toggleStock=function(){toggleBeforeAlignment();document.getElementById('stockInfo').hidden=!showStock};
+</script><style>#modal #stockInfo[hidden]{display:none!important}</style></body>
 </html>
