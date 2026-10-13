@@ -661,7 +661,17 @@ button{
 #modal .qty-barcode-status{font-size:13px!important}
 #modal #m_input{font-size:24px}
 #modal .btn-row .btn{font-size:17px}
-</style></head>
+</style><style id="toolbar-vibrant-colors">
+/* Warna aksi atas: tegas, berbeda tiap fungsi, tanpa mengubah ukuran/layout. */
+.top-actions>button[onclick="exportPDF()"]{background:#16a34a!important;color:#fff!important;border:2px solid #15803d!important;box-shadow:0 2px 5px #15803d30!important}
+.top-actions>button[onclick="openReport()"]{background:#7c3aed!important;color:#fff!important;border:2px solid #5b21b6!important;box-shadow:0 2px 5px #5b21b630!important}
+.top-actions>button[onclick="resetAll()"]{background:#e53935!important;color:#fff!important;border:2px solid #b71c1c!important;box-shadow:0 2px 5px #b71c1c30!important}
+.top-actions>#stockEntryBtn:not(.stock-active){background:#2563eb!important;color:#fff!important;border:2px solid #1746ad!important}
+.top-actions>#stockEntryBtn.stock-active{background:#f97316!important;color:#fff!important;border:2px solid #c2410c!important}
+.top-actions>#moreActionsBtn{background:#facc15!important;color:#503900!important;border:2px solid #d4a900!important;box-shadow:0 2px 5px #a0780030!important}
+.top-actions>button:active{filter:brightness(.89)}
+</style>
+</head>
 <body>
 <div class="top">
 <div class="top-actions">
@@ -1771,5 +1781,123 @@ body button{background:#bdd0ec!important;color:#304b70!important;border-color:#9
 .search-container .search-magnifier{stroke:#76648f!important}.search-dock-divider{background:#b8adce!important}
 .search-container .search-inner .search-clear{background:#e8b5bf!important;color:#854657!important;border:1px solid #ce95a2!important}
 .search-container #calcBtn{background:#bdb0d9!important;color:#51406f!important;border:1px solid #a08fc1!important}.search-container #calcBtn:hover,.search-container #calcBtn:active{background:#ae9fcf!important}
-</style></body>
+</style>
+<style id="mode-and-keyboard-refinement">
+/* Mode switch: opposite high-contrast colors, including on small PDA screens. */
+.top-actions>#stockEntryBtn:not(.stock-active){background:#2563eb!important;color:#fff!important;border:2px solid #1746ad!important;font-weight:700!important}
+.top-actions>#stockEntryBtn.stock-active{background:#e85b20!important;color:#fff!important;border:2px solid #b63b0b!important;font-weight:700!important}
+.top-actions>#stockEntryBtn{box-shadow:0 2px 5px #0002!important}
+/* Compact keyboard-aware sheets; use visible viewport, not the full screen. */
+#modal,#stockModal{height:var(--so-visible-height,100dvh)!important;top:var(--so-visible-top,0px)!important;bottom:auto!important;align-items:flex-end!important;overflow:hidden!important}
+#modal .modal-content,#stockModal .modal-content{position:relative!important;bottom:auto!important;left:auto!important;right:auto!important;width:100%!important;max-width:100%!important;max-height:calc(var(--so-visible-height,100dvh) - 8px)!important;overflow-y:auto!important;overscroll-behavior:contain;padding:12px 15px max(12px,env(safe-area-inset-bottom))!important;border-radius:16px 16px 0 0!important;animation:none!important}
+#modal .qty-info-line,#modal .qty-barcode-row{padding:5px 0!important;font-size:15px!important;line-height:1.2!important}
+#modal #m_nama{font-size:17px!important;line-height:1.2!important}
+#modal .qty-info-label,#modal .qty-colon{font-size:13px!important}
+#modal .qty-barcode-value{font-size:14px!important}
+#modal .modal-content>div:has(#m_input){margin:6px 0!important;gap:7px!important}
+#modal #m_input{height:40px!important;margin:3px 0!important;font-size:20px!important}
+#modal button[onclick="minusQty()"],#modal button[onclick="plusQty()"]{height:40px!important;width:43px!important}
+#modal .btn-row{margin-top:6px!important}
+#modal .btn-row .btn{height:41px!important}
+#stockModal .modal-content>h3{font-size:18px!important;margin:0 0 4px!important}
+#stockModal #s_nama{font-size:15px!important;line-height:1.25!important;margin:3px 0!important}
+#stockModal .plu-barcode{padding:5px 8px!important;margin:5px auto!important}
+#stockModal .plu-barcode svg{height:49px!important}
+#stockModal .plu-barcode code{font-size:15px!important;margin-top:2px!important}
+#stockModal .plu-barcode small{font-size:10px!important}
+#stockModal #s_input{height:42px!important;margin:5px 0!important;padding:6px!important}
+#stockModal .btn-row{margin-top:5px!important}
+#stockModal .btn-row .btn{height:40px!important}
+#stockModal .stock-nav{margin-top:6px!important;gap:5px!important}
+#stockModal .stock-nav button{padding:7px 4px!important;min-height:36px!important}
+#stockModal #stockSaveHint{font-size:11px!important;margin:5px 0 0!important}
+@media(max-height:530px){#modal .qty-info-line,#modal .qty-barcode-row{padding:3px 0!important}#stockModal .plu-barcode svg{height:34px!important}}
+</style>
+<script id="keyboard-visible-viewport">
+(function(){
+ function adjust(){
+   const v=window.visualViewport;
+   const h=v?Math.round(v.height):window.innerHeight;
+   const top=v?Math.round(v.offsetTop):0;
+   document.documentElement.style.setProperty('--so-visible-height',h+'px');
+   document.documentElement.style.setProperty('--so-visible-top',top+'px');
+ }
+ if(window.visualViewport){visualViewport.addEventListener('resize',adjust);visualViewport.addEventListener('scroll',adjust)}
+ window.addEventListener('resize',adjust);
+ document.addEventListener('focusin',function(e){if(e.target.matches('#m_input,#s_input')){adjust();setTimeout(adjust,120);setTimeout(adjust,350)}});
+ adjust();
+})();
+</script>
+
+<style>
+/* Barcode PLU: isi seluruh lebar kotak, tanpa menambah tinggi modal. */
+#stockModal .plu-barcode{width:100%!important;max-width:none!important;overflow:hidden!important;}
+#stockModal .plu-barcode svg{display:block!important;width:100%!important;height:49px!important;max-width:none!important;}
+@media(max-height:530px){#stockModal .plu-barcode svg{height:34px!important;}}
+</style>
+<script>
+/* Khusus barcode PLU, bentangkan garis hingga memenuhi ruang horizontal tersedia. */
+(function(){
+  const previousClickStock=clickStock;
+  clickStock=function(i,keepSequence){
+    previousClickStock(i,keepSequence);
+    const svg=document.querySelector('#stockModalBarcode svg');
+    if(svg) svg.setAttribute('preserveAspectRatio','none');
+  };
+})();
+</script>
+
+<script>
+/* Keyboard pencarian: siap saat masuk/selesai input, sembunyi saat tabel digulir. */
+(function(){
+  const searchField=document.getElementById('search');
+  const itemList=document.getElementById('list');
+  let scrollingTable=false;
+  let touchStartY=null;
+  function focusSearchKeyboard(){
+    if(modalSedangTerbuka() || scrollingTable) return;
+    searchMode='keyboard';
+    searchField.readOnly=false;
+    searchField.setAttribute('inputmode','search');
+    try{searchField.focus({preventScroll:true})}catch(e){searchField.focus()}
+  }
+  function dismissForScroll(){
+    if(scrollingTable) return;
+    scrollingTable=true;
+    if(document.activeElement===searchField) searchField.blur();
+  }
+  itemList.addEventListener('touchstart',function(e){touchStartY=e.touches.length?e.touches[0].clientY:null},{passive:true});
+  itemList.addEventListener('touchmove',function(e){
+    if(touchStartY!==null && e.touches.length && Math.abs(e.touches[0].clientY-touchStartY)>7) dismissForScroll();
+  },{passive:true});
+  itemList.addEventListener('wheel',dismissForScroll,{passive:true});
+  let previousY=window.scrollY;
+  window.addEventListener('scroll',function(){
+    const y=window.scrollY;
+    if(Math.abs(y-previousY)>2 && !modalSedangTerbuka()) dismissForScroll();
+    previousY=y;
+  },{passive:true});
+  searchField.addEventListener('focus',function(){scrollingTable=false});
+  searchField.addEventListener('pointerdown',function(){scrollingTable=false});
+  const originalKeepFocus=keepFocus;
+  keepFocus=function(){
+    if(modalSedangTerbuka())return;
+    scrollingTable=false;
+    // Fokus dalam callback aksi Simpan agar keyboard kembali aktif.
+    focusSearchKeyboard();
+  };
+  const originalSimpan=simpan;
+  simpan=function(){
+    originalSimpan();
+    scrollingTable=false;
+    focusSearchKeyboard();
+  };
+  // Keyboard standby ketika halaman dibuka; interaksi pertama mungkin diperlukan oleh browser Android.
+  window.addEventListener('load',function(){
+    scrollingTable=false;
+    focusSearchKeyboard();
+  });
+})();
+</script>
+</body>
 </html>
