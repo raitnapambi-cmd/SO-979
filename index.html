@@ -1067,9 +1067,14 @@ function hapus(i){
 function render(){
  let key = (search.value || "").toLowerCase();
  let html="";
- const gudangView = filterMode === "gudang";
+ const gudangView = filterMode === "gudang" && !(typeof stockEntryMode !== "undefined" && stockEntryMode);
+ const stockOnly = typeof stockEntryMode !== "undefined" && stockEntryMode;
+ document.body.classList.toggle("so-stock-view",stockOnly);
 
- if(gudangView){
+ if(stockOnly){
+   mainHeader.classList.remove("gudang-view");
+   mainHeader.innerHTML = `<div>PLU</div><div>NAMA ITEM</div><div>STOCK</div>`;
+ }else if(gudangView){
    mainHeader.classList.add("gudang-view");
    mainHeader.innerHTML = `
      <div>PLU</div>
@@ -1104,7 +1109,13 @@ function render(){
     barcode.includes(key) ||
     nama.includes(key)
   )){
-    if(gudangView){
+    if(stockOnly){
+      html+=`<div class="item stock-mode-item" onclick="clickStock(${i})">
+        <div>${x.plu}</div>
+        <div>${gudangQty>0 ? "📦 " : ""}${x.nama}</div>
+        <div class="stock-mode-value">${x.stock}</div>
+      </div>`;
+    }else if(gudangView){
       html+=`
       <div class="item gudang-item" onclick="openGudangModal(${i})">
         <div>${x.plu}</div>
@@ -1897,6 +1908,47 @@ body button{background:#bdd0ec!important;color:#304b70!important;border-color:#9
     scrollingTable=false;
     focusSearchKeyboard();
   });
+})();
+</script>
+
+<style>
+/* Mode Stock: hanya PLU, nama, dan angka STOCK; warna jelas berbeda dari mode QTY. */
+body.so-stock-view #mainHeader{grid-template-columns:70px minmax(0,1fr) 86px!important;background:#c9e9fa!important;color:#124c78!important;border-bottom:2px solid #2d8cc4!important;}
+body.so-stock-view #list .stock-mode-item{grid-template-columns:70px minmax(0,1fr) 86px!important;gap:7px!important;background:#eaf6ff!important;border:1px solid #9bcde9!important;box-shadow:0 2px 7px rgba(34,112,169,.12)!important;min-height:57px;}
+body.so-stock-view #list .stock-mode-item:nth-child(even){background:#dcefff!important;}
+body.so-stock-view #list .stock-mode-item>div:nth-child(2){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0;}
+body.so-stock-view #list .stock-mode-item .stock-mode-value{display:flex!important;align-items:center;justify-content:center;min-height:36px;max-height:none!important;background:#1474b8!important;color:white!important;border-radius:9px;font-size:17px!important;font-weight:700!important;font-variant-numeric:tabular-nums;}
+body.so-stock-view #stockEntryHint{background:#d8efff!important;color:#125584!important;border-bottom:1px solid #a2d3ef!important;}
+body.so-stock-view .search-container{background:#f0f8ff!important;}
+body:not(.so-stock-view) #mainHeader{background:#f3eddb;}
+@media(max-width:370px){body.so-stock-view #mainHeader,body.so-stock-view #list .stock-mode-item{grid-template-columns:57px minmax(0,1fr) 70px!important;}}
+</style>
+<script>
+(function(){
+  const previousToggleStockEntry=toggleStockEntry;
+  toggleStockEntry=function(){previousToggleStockEntry();render();};
+})();
+</script>
+<script>
+/* Tampilkan setiap jenis notifikasi informatif hanya sekali per pemuatan halaman.
+   Pengecualian: petunjuk saat STOCK readonly ditekan selalu ditampilkan. */
+(function(){
+  const notified = new Set();
+  const readonlyMessage = 'Untuk input stock ada di menu "Input Stock" di bagian atas.';
+  const previousActionToast = showActionToast;
+  showActionToast = function(message){
+    if(message !== readonlyMessage){
+      if(notified.has('action:' + message)) return;
+      notified.add('action:' + message);
+    }
+    previousActionToast(message);
+  };
+  const previousBarcodeToast = showBarcodeToast;
+  showBarcodeToast = function(){
+    if(notified.has('barcode-copied')) return;
+    notified.add('barcode-copied');
+    previousBarcodeToast();
+  };
 })();
 </script>
 </body>
