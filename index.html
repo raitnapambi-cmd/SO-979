@@ -1951,5 +1951,26 @@ body:not(.so-stock-view) #mainHeader{background:#f3eddb;}
   };
 })();
 </script>
+
+<style>
+/* Barcode PLU: lebar sedang, garis lebih tebal, tinggi tetap. */
+#stockModal #stockModalBarcode.plu-barcode{
+  width:min(60vw, 270px)!important;
+  max-width:min(60vw, 270px)!important;
+  min-width:0!important;
+  margin:5px auto!important;
+  padding:5px 8px!important;
+  overflow:visible!important;
+}
+#stockModal #stockModalBarcode.plu-barcode svg{
+  width:100%!important;
+  height:49px!important;
+  max-width:100%!important;
+  shape-rendering:crispEdges;
+}
+@media(max-height:530px){#stockModal #stockModalBarcode.plu-barcode svg{height:34px!important;}}
+#stockModal #stockModalBarcode.plu-barcode code{white-space:nowrap;font-size:13px!important;}
+#stockModal #stockModalBarcode.plu-barcode small{font-size:9px!important;white-space:nowrap;}
+</style>
 </body>
 </html>
