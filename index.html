@@ -2806,5 +2806,140 @@ body.so-stock-view #list .stock-mode-item .stock-mode-value{min-height:30px!impo
 
 
 
+
+<!-- V10: navigasi tetap tampil saat mencari, kalkulator mengambang tanpa backdrop. -->
+<style id="so-v10-floating-calc-and-tabs">
+/* Prior version hid the entire nav whenever search gained focus. */
+body.search-focused #bottomTabs, body #bottomTabs {display:grid!important;visibility:visible!important;}
+#bottomTabs{top:var(--so-visible-nav-top,auto)!important;bottom:var(--so-visible-nav-bottom,0px)!important;transition:none!important;}
+body.calc-open{overflow:visible!important;}
+/* Transparent hit-testing layer: items in the table remain readable and clickable. */
+#calcModal{
+ position:fixed!important;inset:0!important;z-index:139!important;
+ background:transparent!important;backdrop-filter:none!important;
+ align-items:initial!important;justify-content:initial!important;
+ padding:0!important;margin:0!important;pointer-events:none!important;
+}
+#calcModal .modal-content{
+ position:fixed!important;inset:auto!important;
+ top:auto!important;left:auto!important;right:12px!important;
+ bottom:calc(var(--so-nav-height,65px) + env(safe-area-inset-bottom) + 10px)!important;
+ width:min(258px, calc(100vw - 24px))!important;max-width:258px!important;
+ height:auto!important;max-height:min(440px, calc(100dvh - var(--so-nav-height,65px) - 20px))!important;
+ overflow:auto!important;overscroll-behavior:contain!important;
+ padding:10px!important;margin:0!important;gap:7px!important;
+ background:#fff!important;border:1px solid #d5dde4!important;
+ border-radius:13px!important;box-shadow:0 8px 26px rgba(22,37,49,.22)!important;
+ pointer-events:auto!important;animation:none!important;transform:none!important;
+ display:flex!important;flex-direction:column!important;text-align:left!important;
+}
+#calcModal .calc-head{min-height:27px!important;display:flex!important;flex:none!important;align-items:center!important;gap:6px!important;justify-content:space-between!important}
+#calcModal .calc-head h3{font-size:15px!important;line-height:1.2!important;margin:0!important;font-weight:600!important;color:#354451!important;text-align:left!important;order:0!important}
+#calcModal .calc-head .calc-back{order:1!important;width:28px!important;height:28px!important;flex:0 0 28px!important;margin:0!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:7px!important;background:#f1f3f5!important;color:#596775!important;border:1px solid #dce2e7!important;box-shadow:none!important;font-size:19px!important;line-height:1!important;font-weight:400!important}
+#calcModal .calc-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;flex:none!important}
+#calcModal .calc-tabs button,#calcModal .calc-tabs button.active{height:27px!important;min-height:27px!important;padding:2px 1px!important;border-radius:6px!important;font-size:11px!important;line-height:1.1!important;font-weight:500!important;box-shadow:none!important}
+#calcModal .calc-tabs button{background:#f2f4f6!important;color:#546371!important;border:1px solid #e3e8ed!important}
+#calcModal .calc-tabs button.active{background:#e1e8ee!important;color:#2e4b63!important;border-color:#cbd8e3!important}
+#calcModal #calcMain{flex:none!important;display:flex!important;flex-direction:column!important;gap:6px!important;max-width:none!important;margin:0!important;width:100%!important;min-height:0!important;padding:0!important;background:transparent!important;border:0!important}
+#calcModal #calcMain[hidden]{display:none!important}
+#calcModal #calcDisplay{flex:none!important;width:100%!important;height:44px!important;min-height:44px!important;margin:0!important;padding:6px 9px!important;background:#f8fafb!important;border:1px solid #dce3e9!important;border-radius:7px!important;color:#263e54!important;font-size:23px!important;line-height:1.3!important;font-weight:500!important;text-align:right!important;box-shadow:none!important}
+#calcModal .calc-keys{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-template-rows:repeat(5,38px)!important;gap:5px!important;flex:none!important;width:100%!important;min-height:0!important}
+#calcModal .calc-keys button{width:100%!important;height:38px!important;min-height:38px!important;max-height:38px!important;margin:0!important;padding:0!important;border-radius:7px!important;font-size:17px!important;line-height:1!important;font-weight:500!important;box-shadow:none!important;background:#f3f6f8!important;color:#384d5d!important;border:1px solid #e2e7ec!important;touch-action:manipulation!important}
+#calcModal .calc-keys button:nth-child(14),#calcModal .calc-keys button:nth-child(15){background:#edf0f2!important;color:#536374!important;border:1px solid #e1e7ec!important}
+#calcModal .calc-keys button.operator{background:#e9eef3!important;border-color:#d8e1ea!important;color:#34526c!important}
+#calcModal .calc-keys button.equal{grid-column:span 4!important;background:#dbe9e0!important;color:#305c46!important;border-color:#c7dacf!important}
+#calcModal #multiplicationPanel{flex:none!important;display:block!important;max-width:none!important;max-height:265px!important;min-height:0!important;width:100%!important;overflow-y:auto!important;margin:0!important}
+#calcModal #multiplicationPanel[hidden]{display:none!important}
+#calcModal .times-row{font-size:13px!important;padding:6px 9px!important;margin:0 0 4px!important;border:1px solid #edf0f2!important;border-radius:6px!important;background:#f8fafb!important;min-height:27px!important}
+#calcModal .times-row span:last-child{color:#34546d!important}
+#bottomTabs #calcBtn.active{background:#e9eef2!important;color:#314c63!important}
+@media(max-height:620px){#calcModal .modal-content{max-height:calc(100dvh - var(--so-nav-height,65px) - 20px)!important}#calcModal .calc-keys{grid-template-rows:repeat(5,32px)!important}#calcModal .calc-keys button{height:32px!important;min-height:32px!important;max-height:32px!important}}
+</style>
+<script id="so-v10-floating-calc-and-tabs-logic">
+(function(){
+ 'use strict';
+ const nav=document.getElementById('bottomTabs');
+ const calculator=document.getElementById('calcModal');
+ const calcTab=document.getElementById('calcBtn');
+ const closeButton=calculator?.querySelector('.calc-back');
+ if(!nav||!calculator||!calcTab)return;
+ // The legacy full-screen calculator split its keypad from the multiplication table.
+ // Restore compact tabs so only one section occupies the small floating panel.
+ const body=calculator.querySelector('.modal-content');
+ const head=calculator.querySelector('.calc-head');
+ const oldTop=calculator.querySelector('#calcTopHalf');
+ const tabs=calculator.querySelector('.calc-tabs');
+ const main=calculator.querySelector('#calcMain');
+ const multiplication=calculator.querySelector('#multiplicationPanel');
+ if(body&&head&&tabs&&main&&multiplication){
+   head.after(tabs);
+   main.after(multiplication);
+   oldTop?.remove();
+   if(!tabs.querySelector('[data-calc-tab="0"]')){
+     const basic=document.createElement('button');
+     basic.type='button';basic.textContent='Hitung';basic.setAttribute('role','tab');
+     basic.dataset.calcTab='0';basic.onclick=()=>selectCalcTab(0);
+     tabs.prepend(basic);
+   }
+   selectCalcTab=function(multiplier){
+     tabs.querySelectorAll('[data-calc-tab]').forEach(b=>{
+       const active=Number(b.dataset.calcTab)===multiplier;
+       b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));
+     });
+     main.hidden=multiplier!==0;
+     multiplication.hidden=multiplier===0;
+     if(multiplier){
+       multiplication.replaceChildren();
+       for(let i=1;i<=20;i++){
+         const row=document.createElement('div');row.className='times-row';
+         const a=document.createElement('span'),b=document.createElement('span');
+         a.textContent=i+' × '+multiplier;b.textContent='= '+i*multiplier;
+         row.append(a,b);multiplication.append(row);
+       }
+       multiplication.scrollTop=0;
+     }
+   };
+ }
+ if(closeButton){closeButton.textContent='×';closeButton.setAttribute('aria-label','Tutup kalkulator');closeButton.setAttribute('title','Tutup kalkulator');}
+ // visualViewport tracks Android's keyboard, independently of whether layout viewport resizes.
+ function alignNav(){
+   const v=window.visualViewport;
+   const h=nav.getBoundingClientRect().height||65;
+   if(v){
+     const y=Math.max(0,Math.round(v.offsetTop+v.height-h));
+     document.documentElement.style.setProperty('--so-visible-nav-top',y+'px');
+     document.documentElement.style.setProperty('--so-visible-nav-bottom','auto');
+   }else{
+     document.documentElement.style.setProperty('--so-visible-nav-top','auto');
+     document.documentElement.style.setProperty('--so-visible-nav-bottom','0px');
+   }
+ }
+ if(window.visualViewport){visualViewport.addEventListener('resize',alignNav,{passive:true});visualViewport.addEventListener('scroll',alignNav,{passive:true})}
+ window.addEventListener('resize',alignNav,{passive:true});
+ const searchField=document.getElementById('search');
+ searchField?.addEventListener('focus',()=>{requestAnimationFrame(alignNav);setTimeout(alignNav,120)});
+ searchField?.addEventListener('blur',()=>{requestAnimationFrame(alignNav);setTimeout(alignNav,120)});
+ const oldClose=window.closeCalc;
+ window.closeCalc=function(){oldClose();calcTab.classList.remove('active');calcTab.setAttribute('aria-expanded','false');};
+ window.openCalc=function(){
+   if(calculator.style.display==='flex'){window.closeCalc();return;}
+   document.activeElement?.blur();
+   calculator.style.display='flex';
+   const display=document.getElementById('calcDisplay');
+   if(display)display.value='';
+   if(typeof selectCalcTab==='function')selectCalcTab(0);
+   document.body.classList.remove('calc-open');
+   calcTab.classList.add('active');calcTab.setAttribute('aria-expanded','true');
+   alignNav();
+ };
+ calcTab.setAttribute('aria-expanded','false');
+ calculator.setAttribute('aria-label','Kalkulator mengambang');
+ calculator.setAttribute('aria-modal','false');
+ // Only dismiss calculator with Escape; no full-screen overlay or blocked page gestures.
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&calculator.style.display==='flex')window.closeCalc()});
+ alignNav();
+})();
+</script>
+
 </body>
 </html>
