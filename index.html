@@ -2941,5 +2941,44 @@ body.calc-open{overflow:visible!important;}
 })();
 </script>
 
+<!-- V11: posisi floating kiri dan tombol tutup langsung di bawah tombol sama dengan. -->
+<style id="so-v11-calc-left-close">
+#calcModal .modal-content{
+  left:12px!important;
+  right:auto!important;
+}
+#calcModal .calc-head{justify-content:flex-start!important}
+#calcModal .calc-close-bottom{
+  display:block!important;
+  flex:0 0 auto!important;
+  order:initial!important;
+  width:100%!important;
+  height:36px!important;
+  min-height:36px!important;
+  margin:0!important;
+  padding:7px 10px!important;
+  border-radius:7px!important;
+  border:1px solid #e4d7d7!important;
+  background:#f8eeee!important;
+  box-shadow:none!important;
+  font:500 13px/1.2 Arial,sans-serif!important;
+  color:#794b4b!important;
+  text-align:center!important;
+  cursor:pointer!important;
+}
+#calcModal .calc-close-bottom:active{background:#eddede!important}
+</style>
+<script id="so-v11-calc-left-close-logic">
+(function(){
+  const panel=document.querySelector('#calcModal .modal-content');
+  const close=panel?.querySelector('.calc-back');
+  if(!panel||!close)return;
+  close.textContent='Tutup';
+  close.setAttribute('aria-label','Tutup kalkulator');
+  close.classList.add('calc-close-bottom');
+  // Tombol berada tepat setelah keypad (=), atau setelah daftar perkalian.
+  panel.appendChild(close);
+})();
+</script>
 </body>
 </html>
