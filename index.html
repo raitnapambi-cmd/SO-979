@@ -673,6 +673,25 @@ button{
 </style>
 </head>
 <body>
+<!-- Scanner kamera ritel (ZBar WebAssembly) -->
+<section id="retailScanner" class="retail-scanner" aria-label="Scanner barcode kamera">
+  <div class="retail-scanner-head">
+    <div class="retail-scanner-title"><span class="retail-scanner-mark" aria-hidden="true">▥</span><div><strong>Scanner Barcode</strong><small id="scanEngineText">ZBar WASM · Gratis</small></div></div>
+    <button id="scanPowerBtn" type="button" class="retail-scan-power" aria-pressed="false">Aktifkan kamera</button>
+  </div>
+  <div id="scanView" class="retail-scanner-view" hidden>
+    <div class="retail-scanner-camera">
+      <video id="scanVideo" autoplay muted playsinline aria-label="Pratinjau kamera scanner"></video>
+      <div class="retail-scanner-shade" aria-hidden="true"><div class="retail-scanner-target"><div class="retail-scanner-line"></div></div></div>
+      <div class="retail-scanner-badge" id="scanCameraBadge">Memuat kamera…</div>
+    </div>
+    <div class="retail-scanner-controls">
+      <span id="scanStatus" role="status" aria-live="polite">Arahkan barcode ke kotak.</span>
+      <button id="scanTorchBtn" type="button" disabled title="Senter tidak didukung kamera ini" aria-label="Nyalakan senter">☀ Senter</button>
+    </div>
+  </div>
+  <div class="retail-scanner-foot" id="scanFoot">Arahkan kamera ke barcode produk untuk membuka item secara otomatis.</div>
+</section>
 <div class="top">
 <div class="top-actions">
 <button class="" onclick="openInputModal()">+ Tambah Item</button>
@@ -2029,5 +2048,270 @@ body:not(.so-stock-view) #list .item:not(.gudang-item)>div:nth-child(2){font-siz
 body.so-stock-view #list .stock-mode-item>div:first-child{font-size:14px!important;line-height:1.4!important;}
 @media(max-width:370px){body:not(.so-stock-view) #list .item:not(.gudang-item)>div:nth-child(2),body.so-stock-view #list .stock-mode-item>div:first-child{font-size:13px!important;}}
 </style>
+
+<style id="retail-scanner-v1-style">
+/* Scanner kamera di atas; toolbar, data, modal dan warna lama tidak diubah. */
+.retail-scanner{position:relative;z-index:1;margin:9px 10px 10px;padding:11px 12px;background:#f7f9fd;border:1px solid #cad6e7;border-radius:16px;box-shadow:0 3px 12px #223b5910;font:14px Arial,sans-serif;color:#223b59}
+.retail-scanner-head,.retail-scanner-title,.retail-scanner-controls{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.retail-scanner-title{justify-content:flex-start;min-width:0}
+.retail-scanner-title strong{display:block;font-size:15px;line-height:1.2;font-weight:700!important;color:#213d60}
+.retail-scanner-title small{display:block;font-size:11px;margin-top:4px;color:#637994}
+.retail-scanner-mark{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;color:#fff;background:#315f91;border-radius:11px;font-size:25px;font-weight:bold}
+.retail-scanner button{cursor:pointer;font-family:inherit}
+.retail-scanner .retail-scan-power{background:#256b4b!important;color:#fff!important;border:1px solid #1c5a3d!important;border-radius:11px;padding:10px 12px;min-height:40px;font-size:12px;font-weight:700;white-space:nowrap}
+.retail-scanner .retail-scan-power[aria-pressed="true"]{background:#ba444b!important;border-color:#9b333b!important}
+.retail-scanner-view[hidden]{display:none!important}
+.retail-scanner-view{margin-top:11px}
+.retail-scanner-camera{position:relative;width:100%;height:clamp(172px,48vw,254px);background:#101820;overflow:hidden;border-radius:13px}
+.retail-scanner-camera video{display:block;width:100%;height:100%;object-fit:cover;background:#111821}
+.retail-scanner-shade{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;background:linear-gradient(90deg,#0005,transparent 10%,transparent 90%,#0005)}
+.retail-scanner-target{width:min(87%,430px);height:55%;border:2px solid #c5f7b9;border-radius:13px;position:relative;box-shadow:0 0 0 100vmax #0003;overflow:hidden}
+.retail-scanner-target:before,.retail-scanner-target:after{content:"";position:absolute;left:0;right:0;height:1px;background:#ffffff33}
+.retail-scanner-target:before{top:33%}.retail-scanner-target:after{top:66%}
+.retail-scanner-line{position:absolute;left:6%;right:6%;height:2px;top:49%;background:#a4ff8a;box-shadow:0 0 12px 2px #adffac6b;animation:scanSweep 2.2s ease-in-out infinite alternate}
+@keyframes scanSweep{from{top:21%}to{top:80%}}
+.retail-scanner-camera.found .retail-scanner-target{border-color:#53ee8f;box-shadow:0 0 0 100vmax #0002,0 0 16px 4px #3fff813d}
+.retail-scanner-badge{position:absolute;top:9px;left:9px;padding:6px 9px;border-radius:999px;background:#101a24ae;color:#fff;font-size:11px;max-width:calc(100% - 18px)}
+.retail-scanner-controls{margin-top:9px;align-items:center}
+#scanStatus{flex:1;min-width:0;font-size:12px;line-height:1.45;color:#415d7d;overflow-wrap:anywhere}
+.retail-scanner #scanTorchBtn{min-width:78px;padding:9px 8px;background:#e2edfa!important;color:#294c6f!important;border:1px solid #bfd2e7!important;border-radius:10px;font-size:12px}
+.retail-scanner #scanTorchBtn:disabled{opacity:.45!important}
+.retail-scanner-foot{font-size:11px;line-height:1.35;color:#657a94;margin-top:9px}
+.retail-scanner.scan-running .retail-scanner-foot{display:none}
+/* Search bottom sebagai dock minimal. Tombol Cari untuk expand / unexpand. */
+.search-container .search-toggle-btn{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:0 11px!important;height:44px;border-radius:12px!important;background:#f1f5fb!important;color:#455c77!important;border:1px solid #d2dce9!important;font-size:13px;font-weight:700;white-space:nowrap}
+.search-container .search-toggle-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.search-container.search-collapsed .search-inner,.search-container.search-collapsed .search-dock-divider{display:none!important}
+.search-container.search-collapsed .search-dock-shell{justify-content:space-between!important}
+.search-container:not(.search-collapsed) .search-toggle-btn{padding:0 9px!important;min-width:41px;justify-content:center}
+.search-container:not(.search-collapsed) .search-toggle-btn .search-toggle-label{display:none}
+@media(max-width:380px){.retail-scanner{margin-inline:7px;padding:9px}.retail-scanner-title strong{font-size:14px}.retail-scanner .retail-scan-power{padding-inline:9px}}
+@media(prefers-reduced-motion:reduce){.retail-scanner-line{animation:none}}
+</style>
+
+<script id="retail-scanner-v1-logic">
+(function(){
+'use strict';
+const panel=document.getElementById('retailScanner');
+const view=document.getElementById('scanView');
+const video=document.getElementById('scanVideo');
+const power=document.getElementById('scanPowerBtn');
+const torch=document.getElementById('scanTorchBtn');
+const status=document.getElementById('scanStatus');
+const badge=document.getElementById('scanCameraBadge');
+const engineText=document.getElementById('scanEngineText');
+const dock=document.querySelector('.search-container');
+const dockShell=dock.querySelector('.search-dock-shell');
+const finder=document.getElementById('search');
+const toggle=document.createElement('button');
+toggle.type='button';toggle.id='searchExpandBtn';toggle.className='search-toggle-btn';
+toggle.setAttribute('aria-label','Buka pencarian');toggle.setAttribute('aria-expanded','false');
+toggle.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.5"/><path d="m16 16 5 5"/></svg><span class="search-toggle-label">Cari barang</span>';
+dockShell.prepend(toggle);
+let expanded=false;
+function setExpanded(on,autoFocus){
+ expanded=!!on;
+ dock.classList.toggle('search-collapsed',!expanded);
+ toggle.setAttribute('aria-expanded',String(expanded));
+ toggle.setAttribute('aria-label',expanded?'Tutup pencarian':'Buka pencarian');
+ toggle.title=expanded?'Tutup pencarian':'Buka pencarian';
+ if(!expanded){
+   if(finder.value){finder.value='';handleSearch();}
+   if(document.activeElement===finder)finder.blur();
+ }else if(autoFocus){
+   finder.readOnly=false; finder.setAttribute('inputmode','search');
+   finder.focus();
+ }
+ if(typeof dockToKeyboard==='function')dockToKeyboard();
+}
+toggle.addEventListener('click',()=>setExpanded(!expanded,!expanded));
+dock.classList.add('search-collapsed');
+// search focus lama tidak boleh membuka keyboard saat dock sedang tertutup.
+finder.addEventListener('focus',()=>{if(!expanded)setTimeout(()=>{if(!expanded&&document.activeElement===finder)finder.blur()},0)});
+window.addEventListener('load',()=>setTimeout(()=>{if(!expanded)setExpanded(false,false)},210));
+let stream=null,active=false,busy=false,frameId=0,lastFrame=0,lastAccepted='',lastAcceptedAt=0;
+let candidate='',candidateAt=0,torchOn=false,loading=null;
+let detector=null,decoder=null,engine='';
+const canvas=document.createElement('canvas');
+const ctx=canvas.getContext('2d',{willReadFrequently:true});
+function updateStatus(message){status.textContent=message;}
+function allowCamera(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);}
+function secureError(){return 'Kamera membutuhkan HTTPS atau localhost. Jika file dibuka langsung dan kamera gagal, jalankan HTML lewat server HTTPS.';}
+function engineReady(){return engine==='zbar'||engine==='native';}
+async function loadDecoder(){
+ if(engineReady())return;
+ if(loading)return loading;
+ loading=(async()=>{
+   // ZBar WebAssembly, dari package open-source resmi. Model WASM tersemat dalam JS.
+   try{
+    if(!window.zbarWasm||typeof window.zbarWasm.scanImageData!=='function'){
+      await new Promise((resolve,reject)=>{
+       const script=document.createElement('script');
+       const timer=setTimeout(()=>{script.remove();reject(new Error('Timeout memuat ZBar'))},10000);
+       script.src='https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.11.0/dist/inlined/index.js';
+       script.onload=()=>{clearTimeout(timer);resolve()};
+       script.onerror=()=>{clearTimeout(timer);reject(new Error('ZBar tidak termuat'))};
+       document.head.append(script);
+      });
+    }
+    if(typeof window.zbarWasm?.scanImageData!=='function')throw new Error('API ZBar tidak tersedia');
+    decoder=window.zbarWasm;engine='zbar';engineText.textContent='ZBar WASM · Gratis';return;
+   }catch(e){console.warn('ZBar tidak tersedia, mencari scanner browser:',e)}
+   if('BarcodeDetector' in window){
+    let formats=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'];
+    if(typeof BarcodeDetector.getSupportedFormats==='function'){
+      try{const allowed=await BarcodeDetector.getSupportedFormats();formats=formats.filter(x=>allowed.includes(x))}catch(e){}
+    }
+    if(formats.length){try{detector=new BarcodeDetector({formats});engine='native';engineText.textContent='Scanner browser · Gratis';return}catch(e){console.warn(e)}}
+   }
+   throw new Error('Mesin scanner gagal dimuat. Sambungkan internet untuk memuat ZBar, lalu coba lagi.');
+ })().catch(err=>{loading=null;throw err});
+ return loading;
+}
+function formatMatches(symbol){
+ const raw=String(symbol?.typeName||symbol?.format||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ if(raw.includes('ean')||raw.includes('upc')){
+   const val=String(symbol.decode?symbol.decode():symbol.rawValue||'');
+   if(/^\d{8}$|^\d{12}$|^\d{13}$/.test(val)){
+     const digits=val.split('').map(Number),sum=digits.slice(0,-1).reverse().reduce((a,d,i)=>a+d*(i%2===0?3:1),0);
+     return (10-sum%10)%10===digits[digits.length-1];
+   }
+ }
+ return true;
+}
+function lookup(code){
+ const key=String(code).trim();
+ // Cocokkan barcode dan PLU secara exact lebih dahulu; jangan gunakan partial untuk scan.
+ let index=data.findIndex(x=>String(x.barcode||'').trim()===key);
+ if(index<0)index=data.findIndex(x=>String(x.plu||'').trim()===key);
+ if(index>=0)return {index,rule:'exact'};
+ // Aturan scanner toko: toleransi pemotongan SATU digit terakhir, hanya jika unik.
+ if(/^\d{5,}$/.test(key)){
+   const shortened=key.slice(0,-1);
+   const hits=[];
+   data.forEach((x,i)=>{if(String(x.barcode||'').trim()===shortened||String(x.plu||'').trim()===shortened)hits.push(i)});
+   if(hits.length===1)return {index:hits[0],rule:'minus1'};
+ }
+ return {index:-1,rule:'none'};
+}
+function processCode(code){
+ const raw=String(code||'').trim();
+ if(!raw||raw.length>80)return;
+ const now=performance.now();
+ // Debounce satu frame palsu, perlu dua pengamatan stabil yang berdekatan.
+ if(candidate!==raw||now-candidateAt>950){candidate=raw;candidateAt=now;return;}
+ if(raw===lastAccepted&&now-lastAcceptedAt<2700)return;
+ lastAccepted=raw;lastAcceptedAt=now;candidate='';
+ const found=lookup(raw);
+ if(found.index<0){badge.textContent='Belum ada di data';updateStatus('Barcode '+raw+' tidak ditemukan dalam data import.');return;}
+ if(navigator.vibrate)try{navigator.vibrate(45)}catch(e){}
+ badge.textContent='Terbaca: '+raw;
+ updateStatus(found.rule==='minus1'?'Cocok dengan kode tanpa 1 digit terakhir.':'Item ditemukan: '+String(data[found.index].nama||''));
+ panel.querySelector('.retail-scanner-camera').classList.add('found');
+ setTimeout(()=>panel.querySelector('.retail-scanner-camera').classList.remove('found'),650);
+ // Ikuti mode aktif: Input Stock akan membuka modal stock, selain itu modal Qty.
+ openModal(found.index);
+}
+async function readFrame(now){
+ if(!active)return;
+ frameId=requestAnimationFrame(readFrame);
+ if(busy||!engineReady()||modalSedangTerbuka()||video.readyState<2||now-lastFrame<145)return;
+ lastFrame=now;busy=true;
+ try{
+  const vw=video.videoWidth,vh=video.videoHeight;if(!vw||!vh)return;
+  // Ambil area pusat untuk barcode; tiap beberapa frame cek frame penuh.
+  const full=Math.floor(now/950)%4===0;
+  const cropW=full?vw:Math.round(vw*.91),cropH=full?vh:Math.round(vh*.72);
+  const sx=Math.floor((vw-cropW)/2),sy=Math.floor((vh-cropH)/2);
+  const w=Math.min(1100,cropW),h=Math.round(w*cropH/cropW);
+  if(canvas.width!==w)canvas.width=w;if(canvas.height!==h)canvas.height=h;
+  ctx.drawImage(video,sx,sy,cropW,cropH,0,0,w,h);
+  let symbols=[];
+  if(engine==='zbar'){
+   symbols=await decoder.scanImageData(ctx.getImageData(0,0,w,h));
+  }else if(engine==='native'){
+   const hits=await detector.detect(canvas);
+   symbols=hits.map(x=>({format:x.format,rawValue:x.rawValue}));
+  }
+  if(!active||modalSedangTerbuka())return;
+  let code=null;
+  for(const symbol of symbols){
+   try{
+    if(!formatMatches(symbol))continue;
+    const value=String(typeof symbol.decode==='function'?symbol.decode():symbol.rawValue||'').trim();
+    if(!value||value.length>80)continue;
+    // Prioritaskan barcode yang cocok dengan master data.
+    if(lookup(value).index>=0){code=value;break;}
+    if(!code)code=value;
+   }catch(e){}
+  }
+  if(code)processCode(code);
+  else if(candidate&&now-candidateAt>1200)candidate='';
+ }catch(e){
+   console.warn('Kamera scan:',e);
+   if(engine==='zbar'&&'BarcodeDetector' in window){
+    try{detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','code_128','code_39','itf']});engine='native';engineText.textContent='Scanner browser · Gratis';badge.textContent='Fallback browser'}catch(_e){}
+   }
+ }finally{busy=false}
+}
+async function refreshTorch(){
+ const track=stream?.getVideoTracks()?.[0];
+ const capabilities=track?.getCapabilities?.();
+ const available=!!(capabilities&&capabilities.torch);
+ torch.disabled=!available;torch.title=available?'Nyalakan / matikan senter':'Senter tidak didukung perangkat/browser';
+ if(!available)torchOn=false;
+ torch.textContent=torchOn?'☀ Matikan':'☀ Senter';
+}
+async function start(){
+ if(active)return;
+ view.hidden=false;power.disabled=true;power.textContent='Menyiapkan…';
+ badge.textContent='Meminta izin kamera…';updateStatus('Mengaktifkan kamera belakang…');
+ try{
+  if(!allowCamera())throw new Error(secureError());
+  document.activeElement?.blur();
+  if(!expanded)setExpanded(false,false);
+  // Jalankan loader bersamaan agar waktu start lebih pendek, tangani kegagalan secara eksplisit.
+  const decoderPromise=loadDecoder().then(()=>null,error=>error);
+  stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+  video.srcObject=stream;await video.play();
+  const decoderError=await decoderPromise;
+  if(decoderError)throw decoderError;
+  active=true;panel.classList.add('scan-running');power.setAttribute('aria-pressed','true');power.textContent='Matikan kamera';power.disabled=false;
+  badge.textContent='Scanner aktif';updateStatus('Posisikan barcode dalam bingkai. Scanner membaca otomatis.');
+  await refreshTorch();
+  frameId=requestAnimationFrame(readFrame);
+ }catch(e){console.warn('Scanner tidak bisa mulai:',e);stop();view.hidden=false;badge.textContent='Scanner belum aktif';updateStatus(e.message||'Kamera gagal dijalankan. Periksa izin kamera.');}
+ finally{power.disabled=false}
+}
+function stop(){
+ active=false;cancelAnimationFrame(frameId);frameId=0;busy=false;
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+ video.pause();video.srcObject=null;
+ torchOn=false;torch.disabled=true;torch.textContent='☀ Senter';
+ power.textContent='Aktifkan kamera';power.setAttribute('aria-pressed','false');
+ panel.classList.remove('scan-running');badge.textContent='Kamera mati';
+ if(status.textContent.indexOf('gagal')<0)updateStatus('Scanner berhenti. Ketuk Aktifkan kamera untuk melanjutkan.');
+}
+power.addEventListener('click',()=>{if(active){stop();view.hidden=true}else start()});
+torch.addEventListener('click',async()=>{
+ const track=stream?.getVideoTracks()?.[0];if(!track||torch.disabled)return;
+ try{torchOn=!torchOn;await track.applyConstraints({advanced:[{torch:torchOn}]});await refreshTorch()}
+ catch(e){torchOn=false;await refreshTorch();updateStatus('Senter tidak bisa diaktifkan pada kamera ini.')}
+});
+// Jangan biarkan scanner memegang kamera saat tab menjadi tidak aktif.
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&active){stop();view.hidden=true}});
+window.addEventListener('pagehide',()=>{if(active)stop()});
+// Fokus keyboard pencarian lama dibatalkan saat kamera sedang aktif.
+const originalKeepFocus=keepFocus;
+keepFocus=function(){if(active){document.activeElement?.blur();return}if(expanded)originalKeepFocus()};
+const previousSimpan=simpan;
+simpan=function(){previousSimpan();if(active)setTimeout(()=>{if(document.activeElement===finder)finder.blur()},0)};
+const previousSaveStock=saveStock;
+saveStock=function(){previousSaveStock();if(active)setTimeout(()=>{if(document.activeElement===finder)finder.blur()},0)};
+// Saat user memilih pencarian manual, biarkan scanner tetap aktif, tetapi kamera ditunda saat modal.
+window.retailScanner={start,stop,setSearchExpanded:setExpanded};
+})();
+</script>
+
 </body>
 </html>
