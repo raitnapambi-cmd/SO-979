@@ -2144,11 +2144,33 @@ dock.classList.remove('search-collapsed');
 finder.addEventListener('focus',()=>{if(!expanded)setTimeout(()=>{if(!expanded&&document.activeElement===finder)finder.blur()},0)});
 // Search bar tetap terbuka di bawah kamera.
 let stream=null,active=false,busy=false,frameId=0,lastFrame=0,lastAccepted='',lastAcceptedAt=0;
+let lastSeenValidAt=0, scanStartedAt=0, nativeErrors=0, disableNative=false;
+let sameBarcodeLocked=false, clearSightFrames=0;
 let desired=true,starting=false; // kamera otomatis standby; off manual dihormati
 let candidate='',candidateAt=0,torchOn=false,loading=null;
 let detector=null,decoder=null,engine='';
 const canvas=document.createElement('canvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
+const cameraBox=panel.querySelector('.retail-scanner-camera');
+const target=panel.querySelector('.retail-scanner-target');
+let roiCacheKey='',roiCache=null;
+function getScanROI(vw,vh){
+  // Map the visible CSS object-fit:cover preview onto actual video pixels.
+  // Never decode pixels outside the aiming rectangle.
+  const bw=cameraBox.clientWidth,bh=cameraBox.clientHeight;
+  if(!bw||!bh||!vw||!vh)return null;
+  const key=[vw,vh,bw,bh].join(':');
+  if(key===roiCacheKey&&roiCache)return roiCache;
+  const scale=Math.max(bw/vw,bh/vh);
+  const offsetX=(vw*scale-bw)/2,offsetY=(vh*scale-bh)/2;
+  const visibleTargetW=bw*.88,visibleTargetH=bh*.72;
+  const rx=(bw-visibleTargetW)/2,ry=(bh-visibleTargetH)/2;
+  const sx=Math.max(0,(rx+offsetX)/scale);
+  const sy=Math.max(0,(ry+offsetY)/scale);
+  const sw=Math.min(vw-sx,visibleTargetW/scale);
+  const sh=Math.min(vh-sy,visibleTargetH/scale);
+  roiCache={sx,sy,sw,sh};roiCacheKey=key;return roiCache;
+}
 function updateStatus(message){status.textContent=message;}
 function allowCamera(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);}
 function secureError(){return 'Kamera membutuhkan HTTPS atau localhost. Jika file dibuka langsung dan kamera gagal, jalankan HTML lewat server HTTPS.';}
@@ -2158,7 +2180,7 @@ async function loadDecoder(){
  if(loading)return loading;
  loading=(async()=>{
    // Android/browser native decoder avoids JS/WASM pixel processing when supported.
-   if('BarcodeDetector' in window){
+   if('BarcodeDetector' in window && !disableNative){
      let formats=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'];
      if(typeof BarcodeDetector.getSupportedFormats==='function'){
        try{const supported=await BarcodeDetector.getSupportedFormats();formats=formats.filter(x=>supported.includes(x))}catch(e){}
@@ -2185,7 +2207,8 @@ async function loadDecoder(){
 }
 function formatMatches(symbol){
  const raw=String(symbol?.typeName||symbol?.format||'').toLowerCase().replace(/[^a-z0-9]/g,'');
- if(raw.includes('ean')||raw.includes('upc')){
+ // UPC-E carries a compressed check digit; its decoder already validates it.
+ if(raw.includes('ean')||raw==='upca'){
    const val=String(symbol.decode?symbol.decode():symbol.rawValue||'');
    if(/^\d{8}$|^\d{12}$|^\d{13}$/.test(val)){
      const digits=val.split('').map(Number),sum=digits.slice(0,-1).reverse().reduce((a,d,i)=>a+d*(i%2===0?3:1),0);
@@ -2203,8 +2226,16 @@ function rebuildScannerLookup(){
   exactBarcodes=new Map();exactPlus=new Map();shortBarcodes=new Map();
   data.forEach((x,i)=>{
     const barcode=String(x.barcode||'').trim(),plu=String(x.plu||'').trim();
-    if(barcode&&!exactBarcodes.has(barcode))exactBarcodes.set(barcode,i);
-    if(plu&&!exactPlus.has(plu))exactPlus.set(plu,i);
+    if(barcode){
+      const existing=exactBarcodes.get(barcode);
+      if(existing===undefined)exactBarcodes.set(barcode,i);
+      else if(existing!==i)exactBarcodes.set(barcode,-1);
+    }
+    if(plu){
+      const existing=exactPlus.get(plu);
+      if(existing===undefined)exactPlus.set(plu,i);
+      else if(existing!==i)exactPlus.set(plu,-1);
+    }
     for(const k of new Set([barcode,plu])){
       if(!k)continue;
       const prev=shortBarcodes.get(k);
@@ -2217,76 +2248,106 @@ function rebuildScannerLookup(){
 function lookup(code){
  const key=String(code).trim();
  rebuildScannerLookup();
- if(exactBarcodes.has(key))return {index:exactBarcodes.get(key),rule:'exact'};
- if(exactPlus.has(key))return {index:exactPlus.get(key),rule:'exact'};
+ if(exactBarcodes.has(key)){
+   const i=exactBarcodes.get(key);
+   return {index:i,rule:i<0?'ambiguous':'exact'};
+ }
+ if(exactPlus.has(key)){
+   const i=exactPlus.get(key);
+   return {index:i,rule:i<0?'ambiguous':'exact'};
+ }
  if(/^\d{5,}$/.test(key)){
    const shortened=key.slice(0,-1),i=shortBarcodes.get(shortened);
-   if(i!==undefined&&i>=0)return {index:i,rule:'minus1'};
+   if(i!==undefined)return {index:i,rule:i<0?'ambiguous':'minus1'};
  }
  return {index:-1,rule:'none'};
 }
-function processCode(code){
+function processCode(code,matched){
  const raw=String(code||'').trim();
  if(!raw||raw.length>80)return;
  const now=performance.now();
  // Debounce satu frame palsu, perlu dua pengamatan stabil yang berdekatan.
- if(candidate!==raw||now-candidateAt>950){candidate=raw;candidateAt=now;return;}
- if(raw===lastAccepted&&now-lastAcceptedAt<2700)return;
- lastAccepted=raw;lastAcceptedAt=now;candidate='';
- const found=lookup(raw);
- if(found.index<0){badge.textContent='Belum ada di data';updateStatus(raw+' tidak ditemukan');return;}
+ if(candidate!==raw||now-candidateAt>1050){candidate=raw;candidateAt=now;return;}
+ if(raw===lastAccepted&&(sameBarcodeLocked||now-lastAcceptedAt<450))return;
+ lastAccepted=raw;lastAcceptedAt=now;candidate='';sameBarcodeLocked=true;clearSightFrames=0;
+ const found=matched||lookup(raw);
+ if(found.index<0)return;
  if(navigator.vibrate)try{navigator.vibrate(45)}catch(e){}
  badge.textContent='Terbaca: '+raw;
  updateStatus(found.rule==='minus1'?'PLU cocok (-1 digit)':'Item ditemukan');
- panel.querySelector('.retail-scanner-camera').classList.add('found');
- setTimeout(()=>panel.querySelector('.retail-scanner-camera').classList.remove('found'),650);
- // Ikuti mode aktif: Input Stock akan membuka modal stock, selain itu modal Qty.
- openModal(found.index);
+ cameraBox.classList.add('found');
+ setTimeout(()=>cameraBox.classList.remove('found'),450);
+ // A scan in Stock mode must edit Stock, not Qty.
+ if(typeof stockEntryMode!=='undefined'&&stockEntryMode)clickStock(found.index);
+ else openModal(found.index);
 }
 async function readFrame(){
  if(!active)return;
  if(busy||!engineReady()||modalSedangTerbuka()||video.readyState<2){
-   frameId=setTimeout(readFrame,280);return;
+   frameId=setTimeout(readFrame,260);return;
  }
  busy=true;
+ const began=performance.now();
  try{
    const vw=video.videoWidth,vh=video.videoHeight;
    if(!vw||!vh)return;
-   // Moderate resolution is sufficient for most retail barcodes and cheaper on Android.
-   const cropW=Math.round(vw*.94),cropH=Math.round(vh*.76);
-   const sx=Math.floor((vw-cropW)/2),sy=Math.floor((vh-cropH)/2);
-   const w=Math.min(720,cropW),h=Math.min(520,Math.round(w*cropH/cropW));
+   const roi=getScanROI(vw,vh);
+   if(!roi||roi.sw<1||roi.sh<1)return;
+   // Fast first pass, then a slightly sharper pass for difficult/small codes.
+   // The crop is limited to the area physically shown inside the scan reticle.
+   const hasWaited=began-Math.max(lastSeenValidAt,scanStartedAt)>1200;
+   const width=Math.min(roi.sw,hasWaited?860:680);
+   const height=Math.max(1,Math.round(width*roi.sh/roi.sw));
+   const w=Math.round(width),h=Math.round(height);
    if(canvas.width!==w)canvas.width=w;
    if(canvas.height!==h)canvas.height=h;
-   ctx.drawImage(video,sx,sy,cropW,cropH,0,0,w,h);
+   ctx.drawImage(video,roi.sx,roi.sy,roi.sw,roi.sh,0,0,w,h);
    let symbols=[];
-   if(engine==='zbar'){
-     symbols=await decoder.scanImageData(ctx.getImageData(0,0,w,h));
-   }else if(engine==='native'){
+   if(engine==='native'){
      const hits=await detector.detect(canvas);
      symbols=hits.map(x=>({format:x.format,rawValue:x.rawValue}));
+     nativeErrors=0;
+   }else{
+     symbols=await decoder.scanImageData(ctx.getImageData(0,0,w,h));
    }
    if(!active||modalSedangTerbuka())return;
-   let code=null;
+   let chosen=null;
    for(const symbol of symbols){
      try{
        if(!formatMatches(symbol))continue;
        const value=String(typeof symbol.decode==='function'?symbol.decode():symbol.rawValue||'').trim();
        if(!value||value.length>80)continue;
-       if(lookup(value).index>=0){code=value;break;}
-       if(!code)code=value;
+       const match=lookup(value);
+       if(match.index>=0){chosen={value,match};break;}
+       // Unknown/ambiguous barcodes are never allowed to open the wrong item.
      }catch(e){}
    }
-   if(code)processCode(code);
-   else if(candidate&&performance.now()-candidateAt>1200)candidate='';
+   if(chosen){
+     lastSeenValidAt=performance.now();
+     if(chosen.value===lastAccepted)clearSightFrames=0;
+     else if(sameBarcodeLocked)clearSightFrames=Math.min(3,clearSightFrames+1);
+     processCode(chosen.value,chosen.match);
+   }else{
+     if(sameBarcodeLocked&&++clearSightFrames>=3)sameBarcodeLocked=false;
+     if(candidate&&performance.now()-candidateAt>1150)candidate='';
+   }
  }catch(e){
-   console.warn('Kamera scan:',e);
-   if(engine==='zbar'&&'BarcodeDetector' in window){
-     try{detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','code_128','code_39','itf']});engine='native';engineText.textContent='';badge.textContent='Scanner aktif'}catch(_e){}
+   // A transient detector failure is not enough to switch engines.
+   if(engine==='native'&&++nativeErrors>=4){
+     nativeErrors=0;disableNative=true;engine='';detector=null;loading=null;
+     // Try a WASM fallback on the next pass, without blocking the UI.
+     loadDecoder().catch(()=>{updateStatus('Scanner gagal membaca. Coba ulangi kamera.')});
+   }else if(engine==='zbar'){
+     console.warn('Pembacaan barcode:',e);
    }
  }finally{
    busy=false;
-   if(active)frameId=setTimeout(readFrame,260);
+   if(active){
+     const cost=performance.now()-began;
+     // Adaptive idle time caps CPU use without making quick devices wait unnecessarily.
+     const idle=Math.max(75,Math.min(230,70+cost*.65));
+     frameId=setTimeout(readFrame,idle);
+   }
  }
 }
 async function refreshTorch(){
@@ -2313,7 +2374,7 @@ async function start(){
   video.srcObject=stream;await video.play();
   const decoderError=await decoderPromise;
   if(decoderError)throw decoderError;
-  active=true;panel.classList.add('scan-running');power.setAttribute('aria-pressed','true');power.textContent='Matikan kamera';power.disabled=false;
+  active=true;scanStartedAt=performance.now();lastSeenValidAt=0;roiCacheKey='';candidate='';sameBarcodeLocked=false;clearSightFrames=0;panel.classList.add('scan-running');power.setAttribute('aria-pressed','true');power.textContent='Matikan kamera';power.disabled=false;
   badge.textContent='Aktif';updateStatus('Scan barcode');
   await refreshTorch();
   frameId=setTimeout(readFrame,100);
@@ -2321,7 +2382,7 @@ async function start(){
  finally{power.disabled=false;starting=false}
 }
 function stop(){
- active=false;clearTimeout(frameId);frameId=0;busy=false;
+ active=false;clearTimeout(frameId);frameId=0;busy=false;candidate='';roiCacheKey='';
  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
  video.pause();video.srcObject=null;
  torchOn=false;torch.disabled=true;torch.textContent='☀ Senter';
@@ -2713,6 +2774,34 @@ body.so-stock-view #list .stock-mode-item .stock-mode-value{min-height:30px!impo
   requestAnimationFrame(syncDockHeight);
 })();
 </script>
+
+
+<!-- V6: Scan frame taller; ROI matches the actual on-screen reticle. -->
+<style id="scanner-precision-v6">
+  #soFixedDock #retailScanner .retail-scanner-camera {
+    height: clamp(146px, 40vw, 180px) !important;
+  }
+  #soFixedDock #retailScanner .retail-scanner-target {
+    width: 88% !important;
+    height: 72% !important;
+    border-color: #b7f3cb !important;
+    box-shadow: 0 0 0 100vmax #00000029 !important;
+  }
+  #soFixedDock #retailScanner .retail-scanner-target:before,
+  #soFixedDock #retailScanner .retail-scanner-target:after { opacity: .45; }
+  #soFixedDock #retailScanner .retail-scanner-line {
+    top: 50% !important;
+    height: 1px !important;
+    opacity: .65;
+  }
+  #soFixedDock #retailScanner .retail-scanner-camera.found .retail-scanner-target {
+    border-color: #64eb96 !important;
+    box-shadow: 0 0 0 100vmax #00000020, 0 0 10px #34d39980 !important;
+  }
+  @media (orientation: landscape) and (max-height: 540px) {
+    #soFixedDock #retailScanner .retail-scanner-camera { height: 108px !important; }
+  }
+</style>
 
 </body>
 </html>
