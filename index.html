@@ -1924,20 +1924,19 @@ body button{background:#bdd0ec!important;color:#304b70!important;border-color:#9
   },{passive:true});
   searchField.addEventListener('focus',function(){scrollingTable=false});
   searchField.addEventListener('pointerdown',function(){scrollingTable=false});
-  const originalKeepFocus=keepFocus;
+  // Kamera adalah pemindai utama: setelah modal ditutup, jangan fokuskan search.
+  // Kolom search tetap dapat difokuskan lewat sentuhan pengguna.
   keepFocus=function(){
-    if(modalSedangTerbuka())return;
     scrollingTable=false;
-    // Fokus dalam callback aksi Simpan agar keyboard kembali aktif.
-    focusSearchKeyboard();
   };
   const originalSimpan=simpan;
   simpan=function(){
+    // Lepaskan fokus input angka SEBELUM menutup modal agar keyboard menutup.
+    const qtyField=document.getElementById('m_input');
+    if(document.activeElement===qtyField)qtyField.blur();
     originalSimpan();
     scrollingTable=false;
-    focusSearchKeyboard();
   };
-  // Keyboard standby ketika halaman dibuka; interaksi pertama mungkin diperlukan oleh browser Android.
   window.addEventListener('load',function(){
     scrollingTable=false;
   });
@@ -2153,6 +2152,39 @@ const canvas=document.createElement('canvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
 const cameraBox=panel.querySelector('.retail-scanner-camera');
 const target=panel.querySelector('.retail-scanner-target');
+// UI-only feedback for a decoded barcode absent from the imported stock list.
+// Does not pause, lock, or alter the accepted-code decoder path.
+const unknownCooldown=new Map();
+let unknownResetTimer=0;
+function clearUnknownNotice(){
+  clearTimeout(unknownResetTimer);
+  cameraBox.classList.remove('scan-unknown');
+}
+function reportUnknownBarcode(value,rule){
+  const code=String(value||'').trim();
+  if(!code)return;
+  const now=performance.now();
+  const last=unknownCooldown.get(code)||0;
+  if(now-last<2300)return; // No repeating the same warning on each camera frame.
+  unknownCooldown.set(code,now);
+  if(unknownCooldown.size>30){
+    for(const [k,t] of unknownCooldown){
+      if(now-t>6000)unknownCooldown.delete(k);
+    }
+    if(unknownCooldown.size>30)unknownCooldown.clear();
+  }
+  cameraBox.classList.add('scan-unknown');
+  badge.textContent='Tidak ditemukan';
+  updateStatus(rule==='ambiguous'?'Barcode ganda di daftar':'Barcode '+code+' tidak ada di daftar');
+  clearTimeout(unknownResetTimer);
+  unknownResetTimer=setTimeout(()=>{
+    cameraBox.classList.remove('scan-unknown');
+    if(active&&!modalSedangTerbuka()){
+      badge.textContent='Aktif';
+      updateStatus('Scan barcode');
+    }
+  },1900);
+}
 let roiCacheKey='',roiCache=null;
 function getScanROI(vw,vh){
   // Map the visible CSS object-fit:cover preview onto actual video pixels.
@@ -2313,6 +2345,7 @@ async function readFrame(){
    }
    if(!active||modalSedangTerbuka())return;
    let chosen=null;
+   let unmatched=null;
    for(const symbol of symbols){
      try{
        if(!formatMatches(symbol))continue;
@@ -2321,14 +2354,18 @@ async function readFrame(){
        const match=lookup(value);
        if(match.index>=0){chosen={value,match};break;}
        // Unknown/ambiguous barcodes are never allowed to open the wrong item.
+       // Save just one for a non-blocking message after looking for a known barcode.
+       if(!unmatched)unmatched={value,rule:match.rule};
      }catch(e){}
    }
    if(chosen){
+     clearUnknownNotice();
      lastSeenValidAt=performance.now();
      if(chosen.value===lastAccepted)clearSightFrames=0;
      else if(sameBarcodeLocked)clearSightFrames=Math.min(3,clearSightFrames+1);
      processCode(chosen.value,chosen.match);
    }else{
+     if(unmatched)reportUnknownBarcode(unmatched.value,unmatched.rule);
      if(sameBarcodeLocked&&++clearSightFrames>=3)sameBarcodeLocked=false;
      if(candidate&&performance.now()-candidateAt>1150)candidate='';
    }
@@ -2373,6 +2410,16 @@ async function start(){
   stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:960},height:{ideal:540},frameRate:{ideal:24,max:30}}});
   if(document.hidden||!desired){stop();return;}
   video.srcObject=stream;await video.play();
+  // Camera zoom-out only, decoder/scan timing unchanged. Some Android browsers expose no zoom control.
+  const liveTrack=stream.getVideoTracks()[0];
+  try{
+    const cap=liveTrack?.getCapabilities?.();
+    const current=liveTrack?.getSettings?.().zoom;
+    if(cap?.zoom&&Number.isFinite(cap.zoom.min)&&Number.isFinite(current)&&current>cap.zoom.min){
+      // Don't hold up the scanning loop while camera adjusts.
+      liveTrack.applyConstraints({advanced:[{zoom:cap.zoom.min}]}).catch(()=>{});
+    }
+  }catch(e){}
   const decoderError=await decoderPromise;
   if(decoderError)throw decoderError;
   active=true;scanStartedAt=performance.now();lastSeenValidAt=0;roiCacheKey='';candidate='';sameBarcodeLocked=false;clearSightFrames=0;panel.classList.add('scan-running');power.setAttribute('aria-pressed','true');power.textContent='Matikan kamera';power.disabled=false;
@@ -2384,6 +2431,7 @@ async function start(){
 }
 function stop(){
  active=false;clearTimeout(frameId);frameId=0;busy=false;candidate='';roiCacheKey='';
+ clearUnknownNotice();
  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
  video.pause();video.srcObject=null;
  torchOn=false;torch.disabled=true;torch.textContent='☀ Senter';
@@ -2919,8 +2967,16 @@ body.calc-open{overflow:visible!important;}
  const searchField=document.getElementById('search');
  searchField?.addEventListener('focus',()=>{requestAnimationFrame(alignNav);setTimeout(alignNav,120)});
  searchField?.addEventListener('blur',()=>{requestAnimationFrame(alignNav);setTimeout(alignNav,120)});
- const oldClose=window.closeCalc;
- window.closeCalc=function(){oldClose();calcTab.classList.remove('active');calcTab.setAttribute('aria-expanded','false');};
+ // Tutup panel tanpa memanggil closeCalc lama yang menjalankan keepFocus()
+ // dan tanpa memfokuskan input pencarian (keyboard Android tidak muncul).
+ window.closeCalc=function(){
+   if(calculator.contains(document.activeElement)) document.activeElement.blur();
+   calculator.style.display='none';
+   document.body.classList.remove('calc-open');
+   calcTab.classList.remove('active');
+   calcTab.setAttribute('aria-expanded','false');
+   // Kamera tetap berjalan; jangan melakukan start ulang maupun fokus search.
+ };
  window.openCalc=function(){
    if(calculator.style.display==='flex'){window.closeCalc();return;}
    document.activeElement?.blur();
@@ -2980,5 +3036,52 @@ body.calc-open{overflow:visible!important;}
   panel.appendChild(close);
 })();
 </script>
+
+<!-- V12: gentle zoom-out without black bars, restrained search outline, unknown-code notice. -->
+<style id="so-v12-zoomout-search-feedback">
+/* Increasing preview height brings its shape nearer the 16:9 camera stream.
+   'cover' still fills the viewfinder; less of the source image is cropped. */
+#soFixedDock #retailScanner .retail-scanner-camera{
+  height:clamp(171px,47vw,202px)!important;
+}
+#soFixedDock #retailScanner .retail-scanner-camera video{
+  object-fit:cover!important;
+  object-position:center center!important;
+}
+/* Keep the reticle fraction identical to the scanner's existing ROI math. */
+#soFixedDock #retailScanner .retail-scanner-target{
+  width:88%!important;
+  height:72%!important;
+}
+#soFixedDock .search-container .search-dock-shell{
+  border:1.5px solid #8abbb7!important;
+  background:#fbfefd!important;
+  border-radius:10px!important;
+  box-shadow:0 1px 3px rgba(20,97,93,.06)!important;
+  transition:border-color .12s ease,box-shadow .12s ease!important;
+}
+#soFixedDock .search-container .search-dock-shell:focus-within{
+  border-color:#238b83!important;
+  box-shadow:0 0 0 2px rgba(35,139,131,.14)!important;
+}
+#soFixedDock .search-container .search-magnifier{stroke:#4c968e!important}
+#soFixedDock .search-container .search-inner input::placeholder{color:#859b9b!important}
+/* Small inline warning, without alert() or an overlay that blocks the camera. */
+#soFixedDock #retailScanner .retail-scanner-camera.scan-unknown .retail-scanner-target{
+  border-color:#f3b2a7!important;
+  box-shadow:0 0 0 100vmax #00000029!important;
+}
+#soFixedDock #retailScanner .retail-scanner-camera.scan-unknown #scanCameraBadge{
+  background:#923d34e8!important;
+  color:#fff!important;
+}
+#soFixedDock #retailScanner .retail-scanner-camera.scan-unknown #scanStatus{
+  background:#923d34e8!important;
+  color:#fff!important;
+}
+@media (orientation:landscape) and (max-height:540px){
+ #soFixedDock #retailScanner .retail-scanner-camera{height:115px!important}
+}
+</style>
 </body>
 </html>
