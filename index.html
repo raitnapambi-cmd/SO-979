@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, interactive-widget=resizes-content" name="viewport"/>
-<title>SO FULL FINAL (ALL FIXED)</title>
+<title>SO Fulldis</title>
 <style>
 body { font-family: Arial; margin:0; font-size:12px; }
 
@@ -676,7 +676,7 @@ button{
 <!-- Scanner kamera ritel (ZBar WebAssembly) -->
 <section id="retailScanner" class="retail-scanner" aria-label="Scanner barcode kamera">
   <div class="retail-scanner-head">
-    <div class="retail-scanner-title"><span class="retail-scanner-mark" aria-hidden="true">▥</span><div><strong>Scanner Barcode</strong><small id="scanEngineText">ZBar WASM · Gratis</small></div></div>
+    <div class="retail-scanner-title"><span class="retail-scanner-mark" aria-hidden="true">▥</span><div><strong>Scan Barcode</strong><small id="scanEngineText"></small></div></div>
     <button id="scanPowerBtn" type="button" class="retail-scan-power" aria-pressed="false">Aktifkan kamera</button>
   </div>
   <div id="scanView" class="retail-scanner-view" hidden>
@@ -686,11 +686,11 @@ button{
       <div class="retail-scanner-badge" id="scanCameraBadge">Memuat kamera…</div>
     </div>
     <div class="retail-scanner-controls">
-      <span id="scanStatus" role="status" aria-live="polite">Arahkan barcode ke kotak.</span>
+      <span id="scanStatus" role="status" aria-live="polite">Arahkan barcode</span>
       <button id="scanTorchBtn" type="button" disabled title="Senter tidak didukung kamera ini" aria-label="Nyalakan senter">☀ Senter</button>
     </div>
   </div>
-  <div class="retail-scanner-foot" id="scanFoot">Arahkan kamera ke barcode produk untuk membuka item secara otomatis.</div>
+  <div class="retail-scanner-foot" id="scanFoot"></div>
 </section>
 <div class="top">
 <div class="top-actions">
@@ -822,7 +822,7 @@ function normalisasiImport(raw){
     if(!plu) return null;
     return {
       plu,
-      barcode: String(x.barcode ?? x.BARCODE ?? ""),
+      barcode: String(x.barcode ?? x.BARCODE ?? "").trim(),
       nama: String(x.nama ?? x.NAMA ?? x.name ?? "").trim().toUpperCase(),
       stock: Number.isFinite(Number(x.stock ?? x.STOCK)) ? parseInt(x.stock ?? x.STOCK) : null,
       qty: Number.isFinite(Number(x.qty ?? x.QTY)) ? parseInt(x.qty ?? x.QTY) : 0
@@ -842,9 +842,10 @@ function importDataFile(event){
       if(masuk.length === 0) throw new Error("Tidak ada PLU valid di file.");
 
       let baru = 0, update = 0;
+      const pluIndex = new Map(data.map((item, i) => [String(item.plu), i]));
       masuk.forEach(x => {
-        const i = data.findIndex(d => String(d.plu) === x.plu);
-        if(i === -1){
+        const i = pluIndex.get(x.plu);
+        if(i === undefined){
           data.push({
             plu:x.plu,
             barcode:x.barcode,
@@ -854,6 +855,7 @@ function importDataFile(event){
             stockGudang:false,
             stockGudangQty:0
           });
+          pluIndex.set(x.plu, data.length - 1);
           baru++;
         }else{
           // Import berfungsi sebagai merge master data. Hitungan SO/Gudang yang sedang berjalan tidak dihapus.
@@ -864,6 +866,7 @@ function importDataFile(event){
         }
       });
 
+      if(window.invalidateScannerLookup) window.invalidateScannerLookup();
       save();
       render();
       alert("Import berhasil: " + baru + " item baru, " + update + " item diperbarui. QTY SO dan snapshot Stock Gudang yang sudah ada tetap aman.");
@@ -915,12 +918,17 @@ function updateClearButton(){
   document.getElementById("clearBtn").classList.toggle("visible", !!search.value);
 }
 
+let searchRenderTimer = 0;
 function handleSearch(){
   updateClearButton();
-  render();
+  clearTimeout(searchRenderTimer);
+  // Short delay coalesces fast hardware-scanner keystrokes and mobile typing.
+  searchRenderTimer = setTimeout(() => { searchRenderTimer = 0; render(); }, 85);
 }
 
 function clearSearch(){
+  clearTimeout(searchRenderTimer);
+  searchRenderTimer = 0;
   search.value="";
   updateClearButton();
   render();
@@ -1083,80 +1091,88 @@ function hapus(i){
  }
 }
 
-function render(){
- let key = (search.value || "").toLowerCase();
- let html="";
- const gudangView = filterMode === "gudang" && !(typeof stockEntryMode !== "undefined" && stockEntryMode);
- const stockOnly = typeof stockEntryMode !== "undefined" && stockEntryMode;
- document.body.classList.toggle("so-stock-view",stockOnly);
-
- if(stockOnly){
-   mainHeader.classList.remove("gudang-view");
-   mainHeader.innerHTML = `<div>PLU</div><div>NAMA ITEM</div><div>STOCK</div>`;
- }else if(gudangView){
-   mainHeader.classList.add("gudang-view");
-   mainHeader.innerHTML = `
-     <div>PLU</div>
-     <div>NAMA</div>
-     <div onclick="toggleFilter()" style="cursor:pointer;">QTY STOCK ▼</div>`;
- }else{
-   mainHeader.classList.remove("gudang-view");
-   mainHeader.innerHTML = `
-     <div></div><div>PLU</div><div>NAMA</div>
-     <div id="stockHeader">${showStock ? "STOCK" : "-"}</div>
-     <div>QTY</div>
-     <div onclick="toggleFilter()" style="cursor:pointer;">SELISIH ▼</div>`;
- }
-
- data.forEach((x,i)=>{
-  let plu = (x.plu||"").toString();
-  let barcode = (x.barcode||"").toString();
-  let nama = (x.nama||"").toLowerCase();
-  let gudangQty = parseInt(x.stockGudangQty)||0;
-
-  let selisih = x.qty - x.stock;
-  let lolosFilter = (
-    filterMode==="all" ||
-    (filterMode==="klop" && selisih===0) ||
-    (filterMode==="plus" && selisih>0) ||
-    (filterMode==="minus" && selisih<0) ||
-    (filterMode==="gudang" && gudangQty>0)
-  );
-
-  if(lolosFilter && (
-    plu.includes(key) ||
-    barcode.includes(key) ||
-    nama.includes(key)
-  )){
-    if(stockOnly){
-      html+=`<div class="item stock-mode-item" onclick="clickStock(${i})">
-        <div>${x.plu}</div>
-        <div>${gudangQty>0 ? "📦 " : ""}${x.nama}</div>
-        <div class="stock-mode-value">${x.stock}</div>
-      </div>`;
+const ROW_BATCH = 100;
+let shownRows = 0;
+let renderedKey = '';
+let matchingIndices = [];
+let rowObserver = null;
+function htmlSafe(value){return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function headerForMode(mode){
+  if(mode==='stock')return '<div>PLU</div><div>NAMA ITEM</div><div>STOCK</div>';
+  if(mode==='gudang')return '<div>PLU</div><div>NAMA</div><div onclick="toggleFilter()" style="cursor:pointer">QTY STOCK ▼</div>';
+  return '<div></div><div>PLU</div><div>NAMA</div><div id="stockHeader">'+(showStock?'STOCK':'-')+'</div><div>QTY</div><div onclick="toggleFilter()" style="cursor:pointer">SELISIH ▼</div>';
+}
+function drawNextRows(batchSize=ROW_BATCH){
+  const oldMore=document.getElementById('showMoreRows');
+  if(rowObserver) rowObserver.disconnect();
+  if(oldMore)oldMore.remove();
+  const limit=Math.min(shownRows+batchSize,matchingIndices.length);
+  const isStock=typeof stockEntryMode!=='undefined'&&stockEntryMode;
+  const gudangView=!isStock&&filterMode==='gudang';
+  const rows=[];
+  for(let j=shownRows;j<limit;j++){
+    const i=matchingIndices[j], x=data[i];
+    if(!x)continue;
+    const plu=htmlSafe(x.plu),nama=htmlSafe(x.nama);
+    const stock=Number(x.stock)||0,qty=Number(x.qty)||0,gudangQty=Number(x.stockGudangQty)||0;
+    if(isStock){
+      rows.push(`<div class="item stock-mode-item" onclick="clickStock(${i})"><div>${plu}</div><div>${gudangQty>0?'📦 ':''}${nama}</div><div class="stock-mode-value">${stock}</div></div>`);
     }else if(gudangView){
-      html+=`
-      <div class="item gudang-item" onclick="openGudangModal(${i})">
-        <div>${x.plu}</div>
-        <div>${x.nama}</div>
-        <div style="font-weight:400;color:#ef6c00;">${gudangQty}</div>
-      </div>`;
+      rows.push(`<div class="item gudang-item" onclick="openGudangModal(${i})"><div>${plu}</div><div>${nama}</div><div>${gudangQty}</div></div>`);
     }else{
-      html+=`
-      <div class="item">
-        <div onclick="event.stopPropagation();hapus(${i})" style="color:#d50000;font-weight:400;">❌</div>
-        <div onclick="openModal(${i})">${x.plu}</div>
-        <div onclick="openModal(${i})">${gudangQty>0 ? "📦 " : ""}${x.nama}</div>
-        <div class="stock-readonly-cell" title="Edit melalui Input Stock">${showStock ? x.stock : ''}</div>
-        <div onclick="openModal(${i})">${x.qty}</div>
-        <div style="color:${(x.qty-x.stock)==0?"green":(x.qty-x.stock)<0?"red":"blue"};font-weight:400;">
-          ${(x.qty-x.stock)==0?"KLOP":(x.qty-x.stock)>0?"+"+(x.qty-x.stock):(x.qty-x.stock)}
-        </div>
-      </div>`;
+      const delta=qty-stock;
+      const text=delta===0?'KLOP':(delta>0?'+'+delta:String(delta));
+      const color=delta===0?'green':delta>0?'blue':'red';
+      rows.push(`<div class="item"><div onclick="event.stopPropagation();hapus(${i})" style="color:#d50000">❌</div><div onclick="openModal(${i})">${plu}</div><div onclick="openModal(${i})">${gudangQty>0?'📦 ':''}${nama}</div><div class="stock-readonly-cell" title="Input Stock">${showStock?stock:''}</div><div onclick="openModal(${i})">${qty}</div><div style="color:${color}">${text}</div></div>`);
     }
   }
- });
- list.innerHTML=html;
+  if(rows.length)list.insertAdjacentHTML('beforeend',rows.join(''));
+  shownRows=limit;
+  if(shownRows<matchingIndices.length){
+    const more=document.createElement('button');
+    more.id='showMoreRows';more.type='button';more.className='show-more-rows';
+    more.textContent='Lihat berikutnya ('+(matchingIndices.length-shownRows)+')';
+    more.onclick=()=>drawNextRows();
+    list.appendChild(more);
+    if('IntersectionObserver' in window && !search.value.trim()){
+      rowObserver ||= new IntersectionObserver(entries=>{
+        if(entries[0]?.isIntersecting && !modalSedangTerbuka())drawNextRows();
+      },{root:null,rootMargin:'180px'});
+      rowObserver.observe(more);
+    }
+  }
+}
+function render(){
+  const key=String(search.value||'').trim().toLowerCase();
+  const isStock=typeof stockEntryMode!=='undefined'&&stockEntryMode;
+  const mode=isStock?'stock':filterMode==='gudang'?'gudang':'qty';
+  const signature=[mode,filterMode,showStock,key,data.length].join('|');
+  const requestedRows=signature===renderedKey?Math.max(ROW_BATCH,shownRows):ROW_BATCH;
+  renderedKey=signature;
+  document.body.classList.toggle('so-stock-view',isStock);
+  if(mainHeader.dataset.displayMode!==mode+'|'+showStock){
+    mainHeader.classList.toggle('gudang-view',mode==='gudang');
+    mainHeader.innerHTML=headerForMode(mode);
+    mainHeader.dataset.displayMode=mode+'|'+showStock;
+  }
+  const found=[];
+  for(let i=0;i<data.length;i++){
+    const x=data[i];
+    const difference=(Number(x.qty)||0)-(Number(x.stock)||0);
+    if(filterMode==='klop'&&difference!==0)continue;
+    if(filterMode==='plus'&&difference<=0)continue;
+    if(filterMode==='minus'&&difference>=0)continue;
+    if(filterMode==='gudang'&&(Number(x.stockGudangQty)||0)<=0)continue;
+    if(key && !String(x.plu||'').toLowerCase().includes(key) &&
+      !String(x.barcode||'').toLowerCase().includes(key) &&
+      !String(x.nama||'').toLowerCase().includes(key))continue;
+    found.push(i);
+  }
+  matchingIndices=found;
+  if(rowObserver)rowObserver.disconnect();
+  list.replaceChildren();
+  shownRows=0;
+  drawNextRows(requestedRows);
 }
 render();
 
@@ -1307,8 +1323,7 @@ function focusSearch(force){
 window.onload = function(){
   setSearchMode("keyboard");
   updateClearButton();
-  requestAnimationFrame(function(){ focusSearch(true); });
-  setTimeout(function(){ focusSearch(true); }, 150);
+  // Saat auto-scan, jangan memunculkan keyboard tanpa sentuhan pengguna.
 };
 
 window.addEventListener("focus", function(){
@@ -1582,7 +1597,7 @@ padding:10px;
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<div class="modal" id="reportModal" role="dialog" aria-modal="true" aria-label="Report Selisih"><div class="modal-content"><h3>Report Selisih</h3><p id="reportSummary"></p><p>Semua item selisih, termasuk yang tidak tampil di filter.</p><textarea id="reportText" readonly aria-label="Daftar selisih siap disalin"></textarea><div class="btn-row"><button class="btn" id="copyReportBtn" onclick="copyReport()">Salin report</button><button class="btn" onclick="closeDialog('reportModal')">Tutup</button></div><p id="copyStatus" role="status"></p></div></div>
+<div class="modal" id="reportModal" role="dialog" aria-modal="true" aria-label="Report Selisih"><div class="modal-content"><h3>Report Selisih</h3><p id="reportSummary"></p><p></p><textarea id="reportText" readonly aria-label="Daftar selisih siap disalin"></textarea><div class="btn-row"><button class="btn" id="copyReportBtn" onclick="copyReport()">Salin report</button><button class="btn" onclick="closeDialog('reportModal')">Tutup</button></div><p id="copyStatus" role="status"></p></div></div>
 <script>
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function diff(x){return (Number(x.qty)||0)-(Number(x.stock)||0)}
@@ -1594,20 +1609,20 @@ function closeDialog(id){document.getElementById(id).style.display='none';keepFo
 modalSedangTerbuka=function(){return [...document.querySelectorAll('.modal')].some(m=>m.style.display==='flex')};
 const patterns={"0": "BaBbBb", "1": "BbBaBb", "2": "BbBbBa", "3": "AbAbBc", "4": "AbAcBb", "5": "AcAbBb", "6": "AbBbAc", "7": "AbBcAb", "8": "AcBbAb", "9": "BbAbAc", "10": "BbAcAb", "11": "BcAbAb", "12": "AaBbCb", "13": "AbBaCb", "14": "AbBbCa", "15": "AaCbBb", "16": "AbCaBb", "17": "AbCbBa", "18": "BbCbAa", "19": "BbAaCb", "20": "BbAbCa", "21": "BaCbAb", "22": "BbCaAb", "23": "CaBaCa", "24": "CaAbBb", "25": "CbAaBb", "26": "CbAbBa", "27": "CaBbAb", "28": "CbBaAb", "29": "CbBbAa", "30": "BaBaBc", "31": "BaBcBa", "32": "BcBaBa", "33": "AaAcBc", "34": "AcAaBc", "35": "AcAcBa", "36": "AaBcAc", "37": "AcBaAc", "38": "AcBcAa", "39": "BaAcAc", "40": "BcAaAc", "41": "BcAcAa", "42": "AaBaCc", "43": "AaBcCa", "44": "AcBaCa", "45": "AaCaBc", "46": "AaCcBa", "47": "AcCaBa", "48": "CaCaBa", "49": "BaAcCa", "50": "BcAaCa", "51": "BaCaAc", "52": "BaCcAa", "53": "BaCaCa", "54": "CaAaBc", "55": "CaAcBa", "56": "CcAaBa", "57": "CaBaAc", "58": "CaBcAa", "59": "CcBaAa", "60": "CaDaAa", "61": "BbAdAa", "62": "DcAaAa", "63": "AaAbBd", "64": "AaAdBb", "65": "AbAaBd", "66": "AbAdBa", "67": "AdAaBb", "68": "AdAbBa", "69": "AaBbAd", "70": "AaBdAb", "71": "AbBaAd", "72": "AbBdAa", "73": "AdBaAb", "74": "AdBbAa", "75": "BdAbAa", "76": "BbAaAd", "77": "DaCaAa", "78": "BdAaAb", "79": "AcDaAa", "80": "AaAbDb", "81": "AbAaDb", "82": "AbAbDa", "83": "AaDbAb", "84": "AbDaAb", "85": "AbDbAa", "86": "DaAbAb", "87": "DbAaAb", "88": "DbAbAa", "89": "BaBaDa", "90": "BaDaBa", "91": "DaBaBa", "92": "AaAaDc", "93": "AaAcDa", "94": "AcAaDa", "95": "AaDaAc", "96": "AaDcAa", "97": "DaAaAc", "98": "DaAcAa", "99": "AaCaDa", "100": "AaDaCa", "101": "CaAaDa", "102": "DaAaCa", "103": "BaAdAb", "104": "BaAbAd", "105": "BaAbCb", "106": "BcCaAaB"};
 function barcodeSVG(value){if(!/^[ -~]+$/.test(value))return '<small>Format barcode belum didukung.</small>';let codes=[104,...Array.from(value,c=>c.charCodeAt(0)-32)];let check=104;codes.slice(1).forEach((v,i)=>check+=v*(i+1));codes.push(check%103,106);let x=12,rects='';codes.forEach(c=>{for(const ch of patterns[c]){const w=ch.toLowerCase().charCodeAt(0)-96;if(ch===ch.toUpperCase())rects+='<rect x="'+x+'" y="0" width="'+w+'" height="55"/>';x+=w}});return '<svg role="img" aria-label="Barcode '+esc(value)+'" viewBox="0 0 '+(x+12)+' 55" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="white"/><g fill="black">'+rects+'</g></svg>'}
-function showBarcode(container,i){let v=String(data[i].barcode||'').trim();container.innerHTML=v?barcodeSVG(v)+'<code>'+esc(v)+'</code><small>Barcode produk · Code 128</small>':'<small>Barcode belum tersedia untuk item ini.</small>'}
+function showBarcode(container,i){let v=String(data[i].barcode||'').trim();container.innerHTML=v?barcodeSVG(v)+'<code>'+esc(v)+'</code>':'<small>Barcode belum tersedia untuk item ini.</small>'}
 let stockEntryMode=false,stockSequence=[];
 const stockContent=document.querySelector('#stockModal .modal-content');
 stockContent.querySelector('h3').insertAdjacentHTML('afterend','<div id="stockModalBarcode" class="plu-barcode"></div>');
-stockContent.insertAdjacentHTML('beforeend','<div class="stock-nav"><button id="stockPrev" onclick="navigateStock(-1)">← Sebelumnya</button><span id="stockPosition"></span><button id="stockNext" onclick="navigateStock(1)">Selanjutnya →</button></div><p id="stockSaveHint" role="status">Stock otomatis disimpan saat pindah item atau menekan ×.</p>');
+stockContent.insertAdjacentHTML('beforeend','<div class="stock-nav"><button id="stockPrev" onclick="navigateStock(-1)">← Sebelumnya</button><span id="stockPosition"></span><button id="stockNext" onclick="navigateStock(1)">Selanjutnya →</button></div><p id="stockSaveHint" role="status"></p>');
 const baseQtyOpen=openModal;openModal=function(i){if(stockEntryMode)return clickStock(i);baseQtyOpen(i)};
 const baseGudangOpen=openGudangModal;openGudangModal=function(i){if(stockEntryMode)return clickStock(i);baseGudangOpen(i)};
 function matchingStockItems(){const key=search.value.toLowerCase();return data.map((x,i)=>({x,i})).filter(({x})=>{const d=diff(x);return [x.plu,x.nama,x.barcode].some(v=>String(v||'').toLowerCase().includes(key))&&(filterMode==='all'||filterMode==='klop'&&d===0||filterMode==='plus'&&d>0||filterMode==='minus'&&d<0||filterMode==='gudang'&&(Number(x.stockGudangQty)||0)>0)}).map(({i})=>i)}
-const baseStockOpen=clickStock;clickStock=function(i,keepSequence=false){if(!keepSequence){stockSequence=matchingStockItems();if(!stockSequence.includes(i))stockSequence=[i]}baseStockOpen(i);const plu=String(data[i].plu||'');document.getElementById('stockModalBarcode').innerHTML=barcodeSVG(plu)+'<code>'+esc(plu)+'</code><small>Barcode PLU · Code 128</small>';const pos=stockSequence.indexOf(i);document.getElementById('stockPosition').textContent=(pos+1)+' / '+stockSequence.length;document.getElementById('stockPrev').disabled=pos<=0;document.getElementById('stockNext').disabled=pos>=stockSequence.length-1;document.getElementById('stockSaveHint').textContent='Stock otomatis disimpan saat pindah item atau menekan ×.'};
+const baseStockOpen=clickStock;clickStock=function(i,keepSequence=false){if(!keepSequence){stockSequence=matchingStockItems();if(!stockSequence.includes(i))stockSequence=[i]}baseStockOpen(i);const plu=String(data[i].plu||'');document.getElementById('stockModalBarcode').innerHTML=barcodeSVG(plu)+'<code>'+esc(plu)+'</code>';const pos=stockSequence.indexOf(i);document.getElementById('stockPosition').textContent=(pos+1)+' / '+stockSequence.length;document.getElementById('stockPrev').disabled=pos<=0;document.getElementById('stockNext').disabled=pos>=stockSequence.length-1;document.getElementById('stockSaveHint').textContent=''};
 function commitStock(){const raw=s_input.value.trim();if(!/^-?\d+$/.test(raw)||!Number.isSafeInteger(Number(raw))){document.getElementById('stockSaveHint').textContent='Isi stock dengan angka bulat terlebih dahulu.';s_input.focus();return false}const old=data[idx].stock;data[idx].stock=Number(raw);try{save()}catch(e){data[idx].stock=old;document.getElementById('stockSaveHint').textContent='Stock belum tersimpan. Penyimpanan browser penuh atau tidak tersedia.';return false}render();return true}
 function navigateStock(direction){const next=stockSequence[stockSequence.indexOf(idx)+direction];if(next===undefined||!commitStock())return;clickStock(next,true)}
 saveStock=function(){if(!commitStock())return;stockModal.style.display='none';keepFocus()};
 function toggleStockEntry(){stockEntryMode=!stockEntryMode;document.getElementById('stockEntryBtn').classList.toggle('stock-active',stockEntryMode);document.getElementById('stockEntryBtn').setAttribute('aria-pressed',String(stockEntryMode));document.getElementById('stockEntryHint').hidden=!stockEntryMode;keepFocus()}
-const stockHint=document.createElement('div');stockHint.id='stockEntryHint';stockHint.className='stock-entry-hint';stockHint.hidden=true;stockHint.textContent='Input Stock aktif · Ketuk item. Tekan Input Stock lagi untuk kembali ke Qty.';document.getElementById('mainHeader').before(stockHint);
+const stockHint=document.createElement('div');stockHint.id='stockEntryHint';stockHint.className='stock-entry-hint';stockHint.hidden=true;stockHint.textContent='Input Stock';document.getElementById('mainHeader').before(stockHint);
 list.addEventListener('click',function(e){if(!stockEntryMode||e.target.closest('.stock-readonly-cell'))return;const row=e.target.closest('.item');if(!row||e.target.closest('[onclick*="hapus("]'))return;const target=row.querySelector('[onclick*="openModal("],[onclick*="openGudangModal("]')||row;const match=(target.getAttribute('onclick')||'').match(/(?:openModal|openGudangModal)\((\d+)\)/);if(match){e.stopImmediatePropagation();e.preventDefault();clickStock(Number(match[1]))}},true);
 
 function syncBaseToolbar(){document.documentElement.style.setProperty('--toolbar-height',document.querySelector('.top').offsetHeight+'px')}
@@ -1680,7 +1695,7 @@ selectCalcTab(0);
 @media(max-width:370px){.header,.item{grid-template-columns:22px 46px minmax(0,1fr) 37px 37px 47px;gap:2px}.item div{font-size:13px!important}.item div:nth-child(2){font-size:12px!important}}
 </style><div id="barcodeToast" role="status" aria-live="polite" hidden></div><script>
 let barcodeToastTimer;
-function showBarcodeToast(){const toast=document.getElementById('barcodeToast');clearTimeout(barcodeToastTimer);toast.textContent='Barcode berhasil disalin siap dicek stock di aplikasi APO.';toast.hidden=false;barcodeToastTimer=setTimeout(()=>{toast.hidden=true},4000)}
+function showBarcodeToast(){const toast=document.getElementById('barcodeToast');clearTimeout(barcodeToastTimer);toast.textContent='Barcode disalin';toast.hidden=false;barcodeToastTimer=setTimeout(()=>{toast.hidden=true},4000)}
 </script><style>
 #calcModal .modal-content{padding:0!important;gap:0!important;background:#eef2f7;color:#253d58;height:100dvh;max-height:100dvh!important}
 #calcModal .calc-head{flex:0 0 58px;padding:10px 15px;background:#fff;border-bottom:1px solid #e1e7ef}#calcModal .calc-head h3{font-size:17px!important;letter-spacing:-.3px}#calcModal .calc-back{font-size:12px!important;border:1px solid #d9e3ee;background:#f1f5fa;color:#3b587c;border-radius:10px;padding:9px 12px}
@@ -1696,7 +1711,7 @@ function showBarcodeToast(){const toast=document.getElementById('barcodeToast');
 @media(max-height:550px){#calcModal .calc-head{flex-basis:42px;padding:5px 12px}#calcTopHalf{padding:6px 12px;gap:4px}#calcModal #calcMain{padding:6px 12px;gap:4px}#calcModal #calcDisplay{height:36px;flex-basis:36px;font-size:23px!important}#calcModal .calc-tabs button{padding:5px}#calcModal .calc-keys{gap:4px}#calcModal .calc-keys button{font-size:16px!important}.calc-section-caption{display:none}}
 </style><script>
 const calcTopHalf=document.createElement('section');calcTopHalf.id='calcTopHalf';calcTopHalf.setAttribute('aria-label','Tabel perkalian');
-const calcHeading=document.createElement('div');calcHeading.className='calc-section-caption';calcHeading.innerHTML='TABEL PERKALIAN <small>1–20 · Geser untuk melihat</small>';calcTopHalf.append(calcHeading);
+const calcHeading=document.createElement('div');calcHeading.className='calc-section-caption';calcHeading.innerHTML='TABEL PERKALIAN';calcTopHalf.append(calcHeading);
 const multiplicationTabs=document.querySelector('#calcModal .calc-tabs');multiplicationTabs.querySelector('[data-calc-tab="0"]').remove();calcTopHalf.append(multiplicationTabs,document.getElementById('multiplicationPanel'));document.querySelector('#calcModal .calc-head').after(calcTopHalf);
 let selectedMultiplier=6;
 selectCalcTab=function(multiplier){if(![6,12,24].includes(multiplier))multiplier=selectedMultiplier;selectedMultiplier=multiplier;document.querySelectorAll('[data-calc-tab]').forEach(b=>{const on=Number(b.dataset.calcTab)===multiplier;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});document.getElementById('calcMain').hidden=false;const panel=document.getElementById('multiplicationPanel');panel.hidden=false;panel.replaceChildren();for(let i=1;i<=20;i++){const row=document.createElement('div');row.className='times-row';const lhs=document.createElement('span'),rhs=document.createElement('span');lhs.textContent=i+' × '+multiplier;rhs.textContent='= '+i*multiplier;row.append(lhs,rhs);panel.append(row)}panel.scrollTop=0};
@@ -1710,13 +1725,13 @@ selectCalcTab(6);
 let actionToastTimer;
 function showActionToast(message){const toast=document.getElementById('actionToast');clearTimeout(actionToastTimer);toast.textContent=message;toast.hidden=false;actionToastTimer=setTimeout(()=>{toast.hidden=true},4000)}
 // Capture first, so the read-only stock cell gives guidance even in stock-entry mode.
-list.addEventListener('click',function(e){if(!e.target.closest('.stock-readonly-cell'))return;e.preventDefault();e.stopImmediatePropagation();showActionToast('Untuk input stock ada di menu "Input Stock" di bagian atas.');},true);
-const openCalcBeforeNotice=openCalc;openCalc=function(){openCalcBeforeNotice();showActionToast('Silahkan gunakan tabel perkalian agar lebih cepat menghitung.')};
+list.addEventListener('click',function(e){if(!e.target.closest('.stock-readonly-cell'))return;e.preventDefault();e.stopImmediatePropagation();showActionToast('Gunakan Input Stock');},true);
+const openCalcBeforeNotice=openCalc;openCalc=function(){openCalcBeforeNotice()};
 const closeCalcBeforeNotice=closeCalc;closeCalc=function(){closeCalcBeforeNotice();clearTimeout(actionToastTimer);document.getElementById('actionToast').hidden=true};
 </script><script>
 let stockScanGuideShown=false;
 const stockOpenBeforeGuide=clickStock;
-clickStock=function(i,keepSequence=false){stockOpenBeforeGuide(i,keepSequence);if(stockEntryMode&&!stockScanGuideShown){stockScanGuideShown=true;showActionToast('Silahkan scan barcode PLU ini agar cepat cek stock di Inventory.')}};
+clickStock=function(i,keepSequence=false){stockOpenBeforeGuide(i,keepSequence);};
 </script><style>
 #barcodeToast,#actionToast,body.calc-open #actionToast{position:fixed!important;top:50%!important;left:50%!important;bottom:auto!important;right:auto!important;transform:translate(-50%,-50%)!important;width:calc(100% - 36px);max-width:430px;background:#fff3bf!important;color:#685014!important;border:1px solid #e9cc70!important;border-radius:13px;padding:18px 18px 18px 51px!important;box-shadow:0 8px 28px #5d490d26;font-size:15px;line-height:1.55;text-align:left;pointer-events:none}
 #barcodeToast::before,#actionToast::before{content:'ℹ️';position:absolute;left:17px;top:18px;font-size:22px;line-height:1.25}
@@ -1726,7 +1741,7 @@ const showBarcodeBeforeCenter=showBarcodeToast;showBarcodeToast=function(){clear
 const showActionBeforeCenter=showActionToast;showActionToast=function(message){clearTimeout(barcodeToastTimer);document.getElementById('barcodeToast').hidden=true;showActionBeforeCenter(message)};
 </script><script>
 const openQtyBeforeBarcodeGuide=openModal;
-openModal=function(i){openQtyBeforeBarcodeGuide(i);if(!stockEntryMode&&modal.style.display==='flex')showActionToast('Jika butuh barcode dapat salin barcode di menu informasi di atas.')};
+openModal=function(i){openQtyBeforeBarcodeGuide(i)};
 </script><style>
 /* Preserve enlarged font sizes; remove bold throughout the app. */
 html body,html body *{font-weight:400!important}
@@ -1742,7 +1757,7 @@ const toolbarActions=['button[onclick="exportPDF()"]','button[onclick="openRepor
 const moreButton=document.createElement('button');moreButton.id='moreActionsBtn';moreButton.textContent='⋮';moreButton.setAttribute('aria-label','Menu lainnya');moreButton.setAttribute('aria-expanded','false');moreButton.setAttribute('aria-controls','moreActionsMenu');toolbar.append(moreButton);document.querySelector('.top').append(moreMenu);
 function hideMoreMenu(){moreMenu.hidden=true;moreButton.setAttribute('aria-expanded','false')}
 moreButton.onclick=()=>{moreMenu.hidden=!moreMenu.hidden;moreButton.setAttribute('aria-expanded',String(!moreMenu.hidden))};moreMenu.addEventListener('click',e=>{if(e.target.closest('button'))hideMoreMenu()});document.addEventListener('click',e=>{if(!moreMenu.contains(e.target)&&!moreButton.contains(e.target))hideMoreMenu()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!moreMenu.hidden){hideMoreMenu();moreButton.focus()}});
-const toggleStockModeBeforeLabel=toggleStockEntry;toggleStockEntry=function(){toggleStockModeBeforeLabel();document.getElementById('stockEntryBtn').textContent=stockEntryMode?'Input Qty':'Input Stock';document.getElementById('stockEntryHint').textContent='Input Stock aktif · Ketuk item. Tekan Input Qty untuk kembali ke hitungan qty.'};
+const toggleStockModeBeforeLabel=toggleStockEntry;toggleStockEntry=function(){toggleStockModeBeforeLabel();document.getElementById('stockEntryBtn').textContent=stockEntryMode?'Input Qty':'Input Stock';document.getElementById('stockEntryHint').textContent='Input Stock'};
 const magnifier=document.createElementNS('http://www.w3.org/2000/svg','svg');magnifier.setAttribute('viewBox','0 0 24 24');magnifier.setAttribute('class','search-magnifier');magnifier.setAttribute('aria-hidden','true');magnifier.innerHTML='<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>';searchInner.prepend(magnifier);
 syncBaseToolbar();dockToKeyboard();
 </script><style>
@@ -1761,9 +1776,9 @@ syncBaseToolbar();dockToKeyboard();
 @media(prefers-reduced-motion:reduce){.search-dock-shell,.search-container #calcBtn{transition:none}}
 </style><script>
 const redesignedDock=document.createElement('div');redesignedDock.className='search-dock-shell';const dockDivider=document.createElement('span');dockDivider.className='search-dock-divider';dockDivider.setAttribute('aria-hidden','true');const dockCalculator=document.getElementById('calcBtn');redesignedDock.append(searchInner,dockDivider,dockCalculator);searchDock.append(redesignedDock);
-search.placeholder='Cari nama, PLU, atau barcode';search.setAttribute('aria-label','Cari nama, PLU, atau barcode');
+search.placeholder='Cari item, PLU, barcode';search.setAttribute('aria-label','Cari item, PLU, barcode');
 dockCalculator.innerHTML='<svg viewBox="0 0 28 28" aria-hidden="true"><path d="M7 4v6M4 7h6M18 7h6M5 18l5 5M10 18l-5 5M18 21h6"/><circle cx="21" cy="17" r=".8" fill="currentColor" stroke="none"/><circle cx="21" cy="25" r=".8" fill="currentColor" stroke="none"/></svg>';
-const manualModeForDock=setSearchMode;setSearchMode=function(){manualModeForDock();search.placeholder='Cari nama, PLU, atau barcode'};
+const manualModeForDock=setSearchMode;setSearchMode=function(){manualModeForDock();search.placeholder='Cari item, PLU, barcode'};
 dockToKeyboard();
 </script><style>
 .search-container .search-inner .search-clear{order:0!important}
@@ -1885,7 +1900,7 @@ body button{background:#bdd0ec!important;color:#304b70!important;border-color:#9
   let scrollingTable=false;
   let touchStartY=null;
   function focusSearchKeyboard(){
-    if(modalSedangTerbuka() || scrollingTable) return;
+    if(modalSedangTerbuka() || scrollingTable || document.querySelector('.search-container')?.classList.contains('search-collapsed')) return;
     searchMode='keyboard';
     searchField.readOnly=false;
     searchField.setAttribute('inputmode','search');
@@ -1925,7 +1940,6 @@ body button{background:#bdd0ec!important;color:#304b70!important;border-color:#9
   // Keyboard standby ketika halaman dibuka; interaksi pertama mungkin diperlukan oleh browser Android.
   window.addEventListener('load',function(){
     scrollingTable=false;
-    focusSearchKeyboard();
   });
 })();
 </script>
@@ -1953,7 +1967,7 @@ body:not(.so-stock-view) #mainHeader{background:#f3eddb;}
    Pengecualian: petunjuk saat STOCK readonly ditekan selalu ditampilkan. */
 (function(){
   const notified = new Set();
-  const readonlyMessage = 'Untuk input stock ada di menu "Input Stock" di bagian atas.';
+  const readonlyMessage = 'Gunakan Input Stock';
   const previousActionToast = showActionToast;
   showActionToast = function(message){
     if(message !== readonlyMessage){
@@ -2108,7 +2122,7 @@ toggle.type='button';toggle.id='searchExpandBtn';toggle.className='search-toggle
 toggle.setAttribute('aria-label','Buka pencarian');toggle.setAttribute('aria-expanded','false');
 toggle.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.5"/><path d="m16 16 5 5"/></svg><span class="search-toggle-label">Cari barang</span>';
 dockShell.prepend(toggle);
-let expanded=false;
+let expanded=true;
 function setExpanded(on,autoFocus){
  expanded=!!on;
  dock.classList.toggle('search-collapsed',!expanded);
@@ -2125,11 +2139,12 @@ function setExpanded(on,autoFocus){
  if(typeof dockToKeyboard==='function')dockToKeyboard();
 }
 toggle.addEventListener('click',()=>setExpanded(!expanded,!expanded));
-dock.classList.add('search-collapsed');
+dock.classList.remove('search-collapsed');
 // search focus lama tidak boleh membuka keyboard saat dock sedang tertutup.
 finder.addEventListener('focus',()=>{if(!expanded)setTimeout(()=>{if(!expanded&&document.activeElement===finder)finder.blur()},0)});
-window.addEventListener('load',()=>setTimeout(()=>{if(!expanded)setExpanded(false,false)},210));
+// Search bar tetap terbuka di bawah kamera.
 let stream=null,active=false,busy=false,frameId=0,lastFrame=0,lastAccepted='',lastAcceptedAt=0;
+let desired=true,starting=false; // kamera otomatis standby; off manual dihormati
 let candidate='',candidateAt=0,torchOn=false,loading=null;
 let detector=null,decoder=null,engine='';
 const canvas=document.createElement('canvas');
@@ -2142,29 +2157,29 @@ async function loadDecoder(){
  if(engineReady())return;
  if(loading)return loading;
  loading=(async()=>{
-   // ZBar WebAssembly, dari package open-source resmi. Model WASM tersemat dalam JS.
-   try{
-    if(!window.zbarWasm||typeof window.zbarWasm.scanImageData!=='function'){
-      await new Promise((resolve,reject)=>{
-       const script=document.createElement('script');
-       const timer=setTimeout(()=>{script.remove();reject(new Error('Timeout memuat ZBar'))},10000);
-       script.src='https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.11.0/dist/inlined/index.js';
-       script.onload=()=>{clearTimeout(timer);resolve()};
-       script.onerror=()=>{clearTimeout(timer);reject(new Error('ZBar tidak termuat'))};
-       document.head.append(script);
-      });
-    }
-    if(typeof window.zbarWasm?.scanImageData!=='function')throw new Error('API ZBar tidak tersedia');
-    decoder=window.zbarWasm;engine='zbar';engineText.textContent='ZBar WASM · Gratis';return;
-   }catch(e){console.warn('ZBar tidak tersedia, mencari scanner browser:',e)}
+   // Android/browser native decoder avoids JS/WASM pixel processing when supported.
    if('BarcodeDetector' in window){
-    let formats=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'];
-    if(typeof BarcodeDetector.getSupportedFormats==='function'){
-      try{const allowed=await BarcodeDetector.getSupportedFormats();formats=formats.filter(x=>allowed.includes(x))}catch(e){}
-    }
-    if(formats.length){try{detector=new BarcodeDetector({formats});engine='native';engineText.textContent='Scanner browser · Gratis';return}catch(e){console.warn(e)}}
+     let formats=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'];
+     if(typeof BarcodeDetector.getSupportedFormats==='function'){
+       try{const supported=await BarcodeDetector.getSupportedFormats();formats=formats.filter(x=>supported.includes(x))}catch(e){}
+     }
+     if(formats.length){try{detector=new BarcodeDetector({formats});engine='native';engineText.textContent='';return}catch(e){console.warn('Scanner bawaan tidak tersedia',e)}}
    }
-   throw new Error('Mesin scanner gagal dimuat. Sambungkan internet untuk memuat ZBar, lalu coba lagi.');
+   try{
+     if(!window.zbarWasm||typeof window.zbarWasm.scanImageData!=='function'){
+       await new Promise((resolve,reject)=>{
+         const script=document.createElement('script');
+         const timer=setTimeout(()=>{script.remove();reject(new Error('Timeout ZBar'))},10000);
+         script.src='https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.11.0/dist/inlined/index.js';
+         script.onload=()=>{clearTimeout(timer);resolve()};
+         script.onerror=()=>{clearTimeout(timer);reject(new Error('ZBar tidak termuat'))};
+         document.head.append(script);
+       });
+     }
+     if(typeof window.zbarWasm?.scanImageData!=='function')throw new Error('API ZBar tidak tersedia');
+     decoder=window.zbarWasm;engine='zbar';engineText.textContent='';return;
+   }catch(e){console.warn('ZBar:',e)}
+   throw new Error('Scanner tidak tersedia. Periksa koneksi internet atau browser.');
  })().catch(err=>{loading=null;throw err});
  return loading;
 }
@@ -2179,18 +2194,34 @@ function formatMatches(symbol){
  }
  return true;
 }
+let indexedCount=-1;
+let exactBarcodes=new Map(),exactPlus=new Map(),shortBarcodes=new Map();
+function invalidateScannerLookup(){indexedCount=-1;}
+window.invalidateScannerLookup=invalidateScannerLookup;
+function rebuildScannerLookup(){
+  if(indexedCount===data.length)return;
+  exactBarcodes=new Map();exactPlus=new Map();shortBarcodes=new Map();
+  data.forEach((x,i)=>{
+    const barcode=String(x.barcode||'').trim(),plu=String(x.plu||'').trim();
+    if(barcode&&!exactBarcodes.has(barcode))exactBarcodes.set(barcode,i);
+    if(plu&&!exactPlus.has(plu))exactPlus.set(plu,i);
+    for(const k of new Set([barcode,plu])){
+      if(!k)continue;
+      const prev=shortBarcodes.get(k);
+      if(prev===undefined)shortBarcodes.set(k,i);
+      else if(prev!==i)shortBarcodes.set(k,-1);
+    }
+  });
+  indexedCount=data.length;
+}
 function lookup(code){
  const key=String(code).trim();
- // Cocokkan barcode dan PLU secara exact lebih dahulu; jangan gunakan partial untuk scan.
- let index=data.findIndex(x=>String(x.barcode||'').trim()===key);
- if(index<0)index=data.findIndex(x=>String(x.plu||'').trim()===key);
- if(index>=0)return {index,rule:'exact'};
- // Aturan scanner toko: toleransi pemotongan SATU digit terakhir, hanya jika unik.
+ rebuildScannerLookup();
+ if(exactBarcodes.has(key))return {index:exactBarcodes.get(key),rule:'exact'};
+ if(exactPlus.has(key))return {index:exactPlus.get(key),rule:'exact'};
  if(/^\d{5,}$/.test(key)){
-   const shortened=key.slice(0,-1);
-   const hits=[];
-   data.forEach((x,i)=>{if(String(x.barcode||'').trim()===shortened||String(x.plu||'').trim()===shortened)hits.push(i)});
-   if(hits.length===1)return {index:hits[0],rule:'minus1'};
+   const shortened=key.slice(0,-1),i=shortBarcodes.get(shortened);
+   if(i!==undefined&&i>=0)return {index:i,rule:'minus1'};
  }
  return {index:-1,rule:'none'};
 }
@@ -2203,56 +2234,60 @@ function processCode(code){
  if(raw===lastAccepted&&now-lastAcceptedAt<2700)return;
  lastAccepted=raw;lastAcceptedAt=now;candidate='';
  const found=lookup(raw);
- if(found.index<0){badge.textContent='Belum ada di data';updateStatus('Barcode '+raw+' tidak ditemukan dalam data import.');return;}
+ if(found.index<0){badge.textContent='Belum ada di data';updateStatus(raw+' tidak ditemukan');return;}
  if(navigator.vibrate)try{navigator.vibrate(45)}catch(e){}
  badge.textContent='Terbaca: '+raw;
- updateStatus(found.rule==='minus1'?'Cocok dengan kode tanpa 1 digit terakhir.':'Item ditemukan: '+String(data[found.index].nama||''));
+ updateStatus(found.rule==='minus1'?'PLU cocok (-1 digit)':'Item ditemukan');
  panel.querySelector('.retail-scanner-camera').classList.add('found');
  setTimeout(()=>panel.querySelector('.retail-scanner-camera').classList.remove('found'),650);
  // Ikuti mode aktif: Input Stock akan membuka modal stock, selain itu modal Qty.
  openModal(found.index);
 }
-async function readFrame(now){
+async function readFrame(){
  if(!active)return;
- frameId=requestAnimationFrame(readFrame);
- if(busy||!engineReady()||modalSedangTerbuka()||video.readyState<2||now-lastFrame<145)return;
- lastFrame=now;busy=true;
+ if(busy||!engineReady()||modalSedangTerbuka()||video.readyState<2){
+   frameId=setTimeout(readFrame,280);return;
+ }
+ busy=true;
  try{
-  const vw=video.videoWidth,vh=video.videoHeight;if(!vw||!vh)return;
-  // Ambil area pusat untuk barcode; tiap beberapa frame cek frame penuh.
-  const full=Math.floor(now/950)%4===0;
-  const cropW=full?vw:Math.round(vw*.91),cropH=full?vh:Math.round(vh*.72);
-  const sx=Math.floor((vw-cropW)/2),sy=Math.floor((vh-cropH)/2);
-  const w=Math.min(1100,cropW),h=Math.round(w*cropH/cropW);
-  if(canvas.width!==w)canvas.width=w;if(canvas.height!==h)canvas.height=h;
-  ctx.drawImage(video,sx,sy,cropW,cropH,0,0,w,h);
-  let symbols=[];
-  if(engine==='zbar'){
-   symbols=await decoder.scanImageData(ctx.getImageData(0,0,w,h));
-  }else if(engine==='native'){
-   const hits=await detector.detect(canvas);
-   symbols=hits.map(x=>({format:x.format,rawValue:x.rawValue}));
-  }
-  if(!active||modalSedangTerbuka())return;
-  let code=null;
-  for(const symbol of symbols){
-   try{
-    if(!formatMatches(symbol))continue;
-    const value=String(typeof symbol.decode==='function'?symbol.decode():symbol.rawValue||'').trim();
-    if(!value||value.length>80)continue;
-    // Prioritaskan barcode yang cocok dengan master data.
-    if(lookup(value).index>=0){code=value;break;}
-    if(!code)code=value;
-   }catch(e){}
-  }
-  if(code)processCode(code);
-  else if(candidate&&now-candidateAt>1200)candidate='';
+   const vw=video.videoWidth,vh=video.videoHeight;
+   if(!vw||!vh)return;
+   // Moderate resolution is sufficient for most retail barcodes and cheaper on Android.
+   const cropW=Math.round(vw*.94),cropH=Math.round(vh*.76);
+   const sx=Math.floor((vw-cropW)/2),sy=Math.floor((vh-cropH)/2);
+   const w=Math.min(720,cropW),h=Math.min(520,Math.round(w*cropH/cropW));
+   if(canvas.width!==w)canvas.width=w;
+   if(canvas.height!==h)canvas.height=h;
+   ctx.drawImage(video,sx,sy,cropW,cropH,0,0,w,h);
+   let symbols=[];
+   if(engine==='zbar'){
+     symbols=await decoder.scanImageData(ctx.getImageData(0,0,w,h));
+   }else if(engine==='native'){
+     const hits=await detector.detect(canvas);
+     symbols=hits.map(x=>({format:x.format,rawValue:x.rawValue}));
+   }
+   if(!active||modalSedangTerbuka())return;
+   let code=null;
+   for(const symbol of symbols){
+     try{
+       if(!formatMatches(symbol))continue;
+       const value=String(typeof symbol.decode==='function'?symbol.decode():symbol.rawValue||'').trim();
+       if(!value||value.length>80)continue;
+       if(lookup(value).index>=0){code=value;break;}
+       if(!code)code=value;
+     }catch(e){}
+   }
+   if(code)processCode(code);
+   else if(candidate&&performance.now()-candidateAt>1200)candidate='';
  }catch(e){
    console.warn('Kamera scan:',e);
    if(engine==='zbar'&&'BarcodeDetector' in window){
-    try{detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','code_128','code_39','itf']});engine='native';engineText.textContent='Scanner browser · Gratis';badge.textContent='Fallback browser'}catch(_e){}
+     try{detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','code_128','code_39','itf']});engine='native';engineText.textContent='';badge.textContent='Scanner aktif'}catch(_e){}
    }
- }finally{busy=false}
+ }finally{
+   busy=false;
+   if(active)frameId=setTimeout(readFrame,260);
+ }
 }
 async function refreshTorch(){
  const track=stream?.getVideoTracks()?.[0];
@@ -2263,44 +2298,53 @@ async function refreshTorch(){
  torch.textContent=torchOn?'☀ Matikan':'☀ Senter';
 }
 async function start(){
- if(active)return;
+ if(active||starting||!desired||document.hidden)return;
+ starting=true;
  view.hidden=false;power.disabled=true;power.textContent='Menyiapkan…';
- badge.textContent='Meminta izin kamera…';updateStatus('Mengaktifkan kamera belakang…');
+ badge.textContent='Memulai…';updateStatus('Mengaktifkan kamera…');
  try{
   if(!allowCamera())throw new Error(secureError());
   document.activeElement?.blur();
-  if(!expanded)setExpanded(false,false);
+  // Pencarian tetap terlihat selama scanner aktif.
   // Jalankan loader bersamaan agar waktu start lebih pendek, tangani kegagalan secara eksplisit.
   const decoderPromise=loadDecoder().then(()=>null,error=>error);
-  stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+  stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:960},height:{ideal:540},frameRate:{ideal:24,max:30}}});
+  if(document.hidden||!desired){stop();return;}
   video.srcObject=stream;await video.play();
   const decoderError=await decoderPromise;
   if(decoderError)throw decoderError;
   active=true;panel.classList.add('scan-running');power.setAttribute('aria-pressed','true');power.textContent='Matikan kamera';power.disabled=false;
-  badge.textContent='Scanner aktif';updateStatus('Posisikan barcode dalam bingkai. Scanner membaca otomatis.');
+  badge.textContent='Aktif';updateStatus('Scan barcode');
   await refreshTorch();
-  frameId=requestAnimationFrame(readFrame);
+  frameId=setTimeout(readFrame,100);
  }catch(e){console.warn('Scanner tidak bisa mulai:',e);stop();view.hidden=false;badge.textContent='Scanner belum aktif';updateStatus(e.message||'Kamera gagal dijalankan. Periksa izin kamera.');}
- finally{power.disabled=false}
+ finally{power.disabled=false;starting=false}
 }
 function stop(){
- active=false;cancelAnimationFrame(frameId);frameId=0;busy=false;
+ active=false;clearTimeout(frameId);frameId=0;busy=false;
  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
  video.pause();video.srcObject=null;
  torchOn=false;torch.disabled=true;torch.textContent='☀ Senter';
  power.textContent='Aktifkan kamera';power.setAttribute('aria-pressed','false');
  panel.classList.remove('scan-running');badge.textContent='Kamera mati';
- if(status.textContent.indexOf('gagal')<0)updateStatus('Scanner berhenti. Ketuk Aktifkan kamera untuk melanjutkan.');
+ if(status.textContent.indexOf('gagal')<0)updateStatus('Kamera mati');
 }
-power.addEventListener('click',()=>{if(active){stop();view.hidden=true}else start()});
+power.addEventListener('click',()=>{if(active){desired=false;stop();view.hidden=true}else{desired=true;start()}});
 torch.addEventListener('click',async()=>{
  const track=stream?.getVideoTracks()?.[0];if(!track||torch.disabled)return;
  try{torchOn=!torchOn;await track.applyConstraints({advanced:[{torch:torchOn}]});await refreshTorch()}
  catch(e){torchOn=false;await refreshTorch();updateStatus('Senter tidak bisa diaktifkan pada kamera ini.')}
 });
 // Jangan biarkan scanner memegang kamera saat tab menjadi tidak aktif.
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&active){stop();view.hidden=true}});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(active)stop();view.hidden=true}
+  else if(desired)start();
+});
 window.addEventListener('pagehide',()=>{if(active)stop()});
+window.addEventListener('pageshow',()=>{if(desired&&!active)start()});
+// Minta izin / gunakan izin tersimpan tanpa perlu menekan tombol saat reload.
+if(document.readyState==='complete')setTimeout(()=>{if(desired)start()},0);
+else window.addEventListener('load',()=>{if(desired)start()},{once:true});
 // Fokus keyboard pencarian lama dibatalkan saat kamera sedang aktif.
 const originalKeepFocus=keepFocus;
 keepFocus=function(){if(active){document.activeElement?.blur();return}if(expanded)originalKeepFocus()};
@@ -2310,6 +2354,363 @@ const previousSaveStock=saveStock;
 saveStock=function(){previousSaveStock();if(active)setTimeout(()=>{if(document.activeElement===finder)finder.blur()},0)};
 // Saat user memilih pencarian manual, biarkan scanner tetap aktif, tetapi kamera ditunda saat modal.
 window.retailScanner={start,stop,setSearchExpanded:setExpanded};
+})();
+</script>
+
+
+<!-- Layout ringkas v2: kamera pendek, pencarian FAB, kalkulator di kanan bawah. -->
+<style id="scanner-compact-v2">
+/* Pertahankan area pemindaian native tanpa mengubah gambar yang dianalisis. */
+#retailScanner.retail-scanner{
+  width:calc(100% - 24px)!important;max-width:348px!important;
+  margin:7px auto 8px!important;padding:8px 9px!important;
+  border-radius:12px!important;box-shadow:0 2px 7px #223b590b!important;
+}
+#retailScanner .retail-scanner-head{gap:6px!important}
+#retailScanner .retail-scanner-mark{height:29px!important;width:29px!important;flex-basis:29px!important;font-size:20px!important;border-radius:8px!important}
+#retailScanner .retail-scanner-title strong{font-size:13px!important}
+#retailScanner .retail-scanner-title small{font-size:10px!important;margin-top:2px!important}
+#retailScanner .retail-scan-power{min-height:33px!important;padding:6px 9px!important;font-size:11px!important;border-radius:8px!important}
+#retailScanner .retail-scanner-view{margin-top:7px!important}
+#retailScanner .retail-scanner-camera{height:120px!important;border-radius:9px!important}
+#retailScanner .retail-scanner-target{width:82%!important;height:65%!important;border-radius:7px!important}
+#retailScanner .retail-scanner-badge{top:5px!important;left:5px!important;font-size:10px!important;padding:3px 6px!important}
+#retailScanner .retail-scanner-controls{margin-top:6px!important;gap:5px!important}
+#retailScanner #scanStatus{font-size:10px!important;line-height:1.25!important}
+#retailScanner #scanTorchBtn{min-width:64px!important;padding:6px!important;font-size:10px!important;border-radius:7px!important}
+#retailScanner .retail-scanner-foot{display:none!important}
+/* Tombol search di pojok kanan bawah. Tidak ada search bar ketika tertutup. */
+.search-container,
+body.so-stock-view .search-container{
+  position:fixed!important;top:auto!important;left:auto!important;
+  right:14px!important;bottom:calc(var(--keyboard-inset, 0px) + 12px)!important;
+  width:min(420px, calc(100vw - 28px))!important;max-width:calc(100vw - 28px)!important;
+  display:flex!important;z-index:110!important;padding:0!important;margin:0!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+.search-container.search-collapsed{width:54px!important;height:54px!important}
+.search-container .search-dock-shell,
+.search-container.search-collapsed .search-dock-shell{
+  display:flex!important;align-items:center!important;width:100%!important;
+  background:#fff!important;border:1px solid #c5d3e6!important;
+  border-radius:16px!important;box-shadow:0 5px 17px #17365024!important;
+  padding:5px!important;gap:5px!important;min-height:54px!important;
+}
+.search-container.search-collapsed .search-dock-shell{
+  border:0!important;border-radius:50%!important;box-shadow:0 5px 16px #18395a35!important;
+  background:transparent!important;padding:0!important;
+}
+.search-container.search-collapsed .search-inner,
+.search-container.search-collapsed .search-dock-divider{display:none!important}
+.search-container .search-dock-divider{display:none!important}
+.search-container .search-toggle-btn,
+.search-container.search-collapsed .search-toggle-btn{
+  order:2!important;display:grid!important;place-items:center!important;
+  height:43px!important;width:43px!important;min-width:43px!important;flex:0 0 43px!important;
+  padding:0!important;background:#3467a5!important;color:#fff!important;
+  border:0!important;border-radius:12px!important;box-shadow:none!important;
+}
+.search-container.search-collapsed .search-toggle-btn{
+  order:1!important;height:54px!important;width:54px!important;min-width:54px!important;
+  flex-basis:54px!important;border-radius:50%!important;box-shadow:0 5px 16px #18395a35!important;
+}
+.search-container .search-toggle-btn svg{width:23px!important;height:23px!important;stroke:#fff!important}
+.search-container .search-toggle-label{display:none!important}
+.search-container:not(.search-collapsed) .search-inner{
+  display:flex!important;order:1!important;flex:1!important;min-width:0!important;
+  min-height:42px!important;padding:0 5px!important;
+}
+.search-container .search-inner input{min-width:0!important;height:40px!important;font-size:16px!important}
+/* Kalkulator sekarang independen dan floating di kanan, di atas tombol search. */
+#calcBtn,
+.search-container #calcBtn{
+  position:fixed!important;top:auto!important;left:auto!important;
+  right:17px!important;bottom:calc(var(--keyboard-inset,0px) + 81px)!important;
+  transform:none!important;z-index:109!important;
+  height:49px!important;width:49px!important;min-width:49px!important;
+  flex:0 0 49px!important;border-radius:50%!important;
+  background:#bdb0d9!important;color:#51406f!important;
+  border:1px solid #a08fc1!important;box-shadow:0 4px 13px #261b4730!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+}
+body{padding-bottom:max(78px, env(safe-area-inset-bottom))!important}
+#barcodeToast,#actionToast{bottom:calc(var(--keyboard-inset,0px) + 133px)!important}
+@media(max-width:370px){
+ #retailScanner.retail-scanner{max-width:318px!important}
+ #retailScanner .retail-scanner-camera{height:108px!important}
+}
+</style>
+<script id="scanner-compact-v2-logic">
+(function(){
+ 'use strict';
+ // Lepas kalkulator dari search dock sehingga keduanya punya floating button sendiri.
+ const calculator=document.getElementById('calcBtn');
+ const dock=document.querySelector('.search-container');
+ if(calculator&&calculator.parentElement!==document.body)document.body.appendChild(calculator);
+ // Pertahankan ruang layar stabil walaupun pencarian dibuka atau ditutup.
+ function syncDock(){
+  document.body.style.paddingBottom='78px';
+  if(dock)document.documentElement.style.setProperty('--search-dock-height',Math.ceil(dock.getBoundingClientRect().height)+'px');
+ }
+ if(window.ResizeObserver&&dock)new ResizeObserver(syncDock).observe(dock);
+ window.addEventListener('resize',syncDock);
+ syncDock();
+})();
+</script>
+
+<style id="scanner-performance-layout-v3">
+/* Full-width compact camera: no tiny/narrow scan preview. */
+#retailScanner.retail-scanner{width:calc(100% - 16px)!important;max-width:760px!important;margin:5px auto 7px!important;padding:7px 9px!important;border-radius:11px!important}
+#retailScanner .retail-scanner-head{min-height:35px!important}
+#retailScanner .retail-scanner-mark{display:none!important}
+#retailScanner .retail-scanner-title strong{font-size:14px!important;font-weight:600!important}
+#retailScanner .retail-scanner-title small{display:none!important}
+#retailScanner .retail-scan-power{min-height:35px!important;font-size:12px!important}
+#retailScanner .retail-scanner-view{position:relative;margin-top:5px!important}
+#retailScanner .retail-scanner-camera{height:clamp(155px,43vw,190px)!important;width:100%!important;border-radius:9px!important}
+#retailScanner .retail-scanner-target{width:88%!important;height:69%!important}
+#retailScanner .retail-scanner-controls{position:absolute;left:5px;right:5px;bottom:5px;margin:0!important;z-index:2;gap:5px!important;pointer-events:none}
+#retailScanner #scanStatus{max-width:calc(100% - 85px);padding:5px 8px;background:#101a24bc;color:#fff;font-size:11px!important;line-height:1.2!important;border-radius:7px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#retailScanner #scanTorchBtn{pointer-events:auto;min-height:32px;font-size:11px!important;opacity:.93}
+#retailScanner .retail-scanner-foot{display:none!important}
+#retailScanner .retail-scanner-line{animation:none!important}
+#retailScanner .retail-scanner-badge{font-size:10px!important}
+/* Rows stay readable; text is not cut to two lines just to save height. */
+#list .item{padding-top:7px!important;padding-bottom:7px!important;margin-top:4px!important;margin-bottom:4px!important;min-height:47px!important;box-shadow:0 1px 3px #00000011!important;transition:none!important}
+#list .item div:nth-child(3),#list .item.gudang-item div:nth-child(2),body.so-stock-view #list .stock-mode-item>div:nth-child(2){display:block!important;min-height:0!important;max-height:none!important;-webkit-line-clamp:unset!important;line-clamp:unset!important;overflow:visible!important;overflow-wrap:anywhere!important;line-height:1.32!important}
+#list .show-more-rows{display:block;width:calc(100% - 20px);margin:9px auto;padding:12px 8px;background:#e7edf8!important;color:#355579!important;border:1px solid #b6c9e2!important;border-radius:9px;font-size:13px}
+#stockEntryHint{display:none!important}
+#reportModal .modal-content p:empty{display:none}
+#stockSaveHint:empty{display:none!important}
+#stockModal #stockModalBarcode.plu-barcode{width:100%!important;max-width:410px!important}
+#stockModal #stockModalBarcode.plu-barcode svg{height:68px!important}
+#stockModal #stockModalBarcode.plu-barcode small{display:none!important}
+#modal .qty-barcode-status:empty{display:none!important}
+/* Only succinct success/errors; no center-screen instructions. */
+#barcodeToast,#actionToast,body.calc-open #actionToast{top:auto!important;bottom:calc(var(--keyboard-inset,0px) + 16px)!important;padding:9px 12px!important;width:max-content;max-width:calc(100vw - 32px);text-align:center!important;font-size:12px!important;line-height:1.2!important;background:#314c69!important;color:#fff!important;border:0!important;border-radius:9px!important;box-shadow:0 3px 11px #0002!important;transform:translateX(-50%)!important}
+#barcodeToast:before,#actionToast:before{display:none!important}
+</style>
+<!-- V4: bottom navigation / camera first / search beneath camera / auto standby -->
+<style id="bottom-nav-compact-v4">
+:root{--so-nav-height:65px}
+html,body{background:#f8f9fb!important}
+#retailScanner.retail-scanner{width:calc(100% - 16px)!important;max-width:760px!important;margin:5px auto 5px!important;padding:5px 7px!important;border-radius:10px!important;background:#fff!important;border:1px solid #e3e7eb!important;box-shadow:none!important}
+#retailScanner .retail-scanner-head{min-height:28px!important;gap:6px!important}
+#retailScanner .retail-scanner-title strong{font-size:12px!important;font-weight:600!important;color:#263340!important}
+#retailScanner .retail-scan-power,#retailScanner .retail-scan-power[aria-pressed="true"]{min-height:29px!important;height:29px!important;padding:3px 9px!important;border-radius:7px!important;font-size:11px!important;font-weight:500!important;background:#e9edf1!important;border:1px solid #dae1e7!important;color:#344553!important;box-shadow:none!important}
+#retailScanner .retail-scan-power[aria-pressed="true"]{background:#edf3ef!important;border-color:#d1e1d6!important;color:#3c6550!important}
+#retailScanner .retail-scanner-view{margin-top:4px!important}
+#retailScanner .retail-scanner-camera{height:clamp(98px,27vw,118px)!important;border-radius:7px!important}
+#retailScanner .retail-scanner-target{width:88%!important;height:71%!important;border-radius:5px!important;border-width:1.5px!important}
+#retailScanner .retail-scanner-badge{font-size:9px!important;padding:2px 6px!important;top:4px!important;left:4px!important}
+#retailScanner .retail-scanner-controls{bottom:4px!important;left:4px!important;right:4px!important}
+#retailScanner #scanStatus{font-size:10px!important;padding:3px 6px!important;max-width:calc(100% - 80px)!important}
+#retailScanner #scanTorchBtn{font-size:10px!important;min-height:26px!important;min-width:60px!important;padding:3px 5px!important;background:#f4f6f8!important;color:#4e616d!important;border:0!important}
+#retailScanner .retail-scanner-foot{display:none!important}
+/* Selalu tampil di bawah scanner, tidak lagi floating atau collapse. */
+.search-container,body.so-stock-view .search-container,.search-container.search-collapsed{
+  position:relative!important;inset:auto!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;
+  display:flex!important;align-items:center!important;width:calc(100% - 16px)!important;max-width:760px!important;
+  min-height:0!important;height:auto!important;padding:0!important;margin:0 auto 7px!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;z-index:2!important;
+}
+.search-container .search-dock-shell,.search-container.search-collapsed .search-dock-shell{
+  display:flex!important;align-items:center!important;justify-content:stretch!important;
+  width:100%!important;min-height:41px!important;height:41px!important;padding:0 8px!important;gap:3px!important;
+  border-radius:9px!important;background:#fff!important;border:1px solid #dce2e7!important;box-shadow:none!important;
+}
+.search-container .search-toggle-btn,.search-container.search-collapsed .search-toggle-btn{display:none!important}
+.search-container .search-dock-divider{display:none!important}
+.search-container .search-inner,.search-container.search-collapsed .search-inner,.search-container:not(.search-collapsed) .search-inner{
+  display:flex!important;flex:1!important;order:1!important;align-items:center!important;min-width:0!important;min-height:36px!important;height:36px!important;padding:0 3px!important;
+  background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+.search-container .search-inner input{height:36px!important;min-height:36px!important;width:100%!important;font-size:14px!important;color:#2b3845!important}
+.search-container .search-inner input::placeholder{font-size:13px!important;color:#929ba4!important}
+.search-container .search-magnifier{width:17px!important;height:17px!important;flex-basis:17px!important;stroke:#8996a2!important}
+.search-container .search-clear{background:#eceff2!important;color:#56616c!important}
+#bottomTabs{position:fixed;bottom:0;left:0;right:0;z-index:140;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;align-items:stretch;min-height:var(--so-nav-height);padding:5px 4px max(5px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e2e6ea;box-shadow:0 -2px 10px #182e4110}
+#bottomTabs button,#bottomTabs #calcBtn{position:static!important;inset:auto!important;top:auto!important;bottom:auto!important;right:auto!important;left:auto!important;transform:none!important;width:100%!important;height:53px!important;min-width:0!important;min-height:0!important;max-width:none!important;flex:auto!important;display:flex!important;flex-direction:column!important;gap:3px!important;align-items:center!important;justify-content:center!important;padding:4px 1px!important;margin:0!important;border:0!important;border-radius:8px!important;background:transparent!important;color:#747d88!important;box-shadow:none!important;font:500 10px/1.2 Arial,sans-serif!important;cursor:pointer}
+#bottomTabs button.active,#bottomTabs #calcBtn.active{background:#f1f3f5!important;color:#364d60!important}
+#bottomTabs .tab-icon{width:20px;height:20px;display:block;stroke:currentColor;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#bottomTabs button:active{background:#eef0f2!important}
+#bottomTabs .tab-label{white-space:nowrap;font-weight:500!important;letter-spacing:0}
+body{padding-bottom:calc(var(--so-nav-height) + 14px + env(safe-area-inset-bottom))!important}
+body.search-focused #bottomTabs{display:none!important}
+/* Bottom drawer keeps all original actions available. */
+body .top,body .top.nav-open{position:fixed!important;top:auto!important;left:10px!important;right:10px!important;bottom:calc(var(--so-nav-height) + 9px + env(safe-area-inset-bottom))!important;
+ width:auto!important;max-width:650px!important;margin:0 auto!important;padding:13px!important;z-index:131!important;border:1px solid #e0e4e8!important;border-radius:15px!important;
+ background:#fff!important;box-shadow:0 10px 35px #192b3a24!important;overflow:visible!important}
+body .top{display:none!important}
+body .top.nav-open{display:block!important}
+.top .top-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:0!important}
+.top .top-actions>button,.top .top-actions>button:nth-child(1),.top .top-actions>button:nth-child(2),.top .top-actions>button:nth-child(3),.top .top-actions>button:nth-child(4),.top .top-actions>#stockEntryBtn,.top .top-actions>#stockEntryBtn.stock-active,.top .top-actions>#importBtn,.top .top-actions>#markGudangBtn,.top .top-actions>#toggleBtn,.top .top-actions>button[onclick="resetAll()"],.top .top-actions>button[onclick="exportPDF()"],.top .top-actions>button[onclick="openReport()"]{
+ width:100%!important;min-height:41px!important;height:auto!important;flex:auto!important;margin:0!important;padding:10px 9px!important;background:#f6f7f8!important;color:#465563!important;border:1px solid #e2e6e9!important;border-radius:9px!important;box-shadow:none!important;font:500 12px/1.3 Arial,sans-serif!important;text-align:center!important}
+.top .top-actions>#stockEntryBtn,.top .top-actions>button[onclick="openReport()"]{display:none!important}
+#moreActionsBtn,#moreActionsMenu{display:none!important}
+#navMenuBackdrop{position:fixed;inset:0;background:#0c182535;z-index:130}
+#navMenuBackdrop[hidden]{display:none!important}
+/* Show search matches in original list directly beneath the search field. */
+body.search-results-active #mainHeader{display:grid!important}
+body.search-results-active #list{position:static!important;inset:auto!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;z-index:auto!important;
+ display:block!important;flex-direction:initial!important;max-height:none!important;overflow:visible!important;padding:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+#mainHeader{position:sticky;top:0;z-index:2;background:#f1f3f4!important;border-bottom:1px solid #dfe3e7!important;color:#56616c!important;padding-top:6px;padding-bottom:6px}
+body.so-stock-view #mainHeader{background:#eaf0f3!important;border-bottom:1px solid #d6e1e8!important;color:#466174!important}
+#list .item{border-radius:7px!important;margin:3px 8px!important;padding:5px 7px!important;min-height:40px!important;box-shadow:none!important;border:1px solid #eceff2!important}
+body.so-stock-view #list .stock-mode-item{background:#f5f8fa!important;border:1px solid #e0e7ec!important;min-height:43px!important;box-shadow:none!important}
+body.so-stock-view #list .stock-mode-item:nth-child(even){background:#fff!important}
+body.so-stock-view #list .stock-mode-item .stock-mode-value{min-height:30px!important;border-radius:6px!important;background:#e4edf3!important;color:#355267!important;font-weight:500!important}
+#list .show-more-rows{background:#f3f5f7!important;border:1px solid #e4e8ec!important;color:#566472!important}
+/* Kalkulator in nav, no extra floating buttons. */
+#bottomTabs #calcBtn{font-size:10px!important}
+@media(max-width:360px){#retailScanner .retail-scanner-camera{height:98px!important}#bottomTabs .tab-label{font-size:9px!important}}
+</style>
+<script id="bottom-nav-compact-v4-logic">
+(function(){
+ 'use strict';
+ const top=document.querySelector('.top');
+ const bar=top?.querySelector('.top-actions');
+ if(!top||!bar)return;
+ // All existing actions moved into the overflow panel, retaining original click handlers.
+ const more=document.getElementById('moreActionsMenu');
+ if(more){Array.from(more.querySelectorAll('button')).forEach(b=>bar.append(b));more.remove();}
+ document.getElementById('moreActionsBtn')?.remove();
+ const labels={
+  'openInputModal()':'Tambah Item','resetAll()':'Reset Qty & Stock','openImport()':'Import JSON',
+  'toggleStock()':'Hide / Show Stock','markStockGudang()':'Mark Gudang',
+  'exportPDF()':'Export PDF','openReport()':'Report Selisih'
+ };
+ for(const b of bar.querySelectorAll('button')){const key=b.getAttribute('onclick');if(labels[key])b.textContent=labels[key];}
+ const backdrop=document.createElement('div');backdrop.id='navMenuBackdrop';backdrop.hidden=true;
+ const nav=document.createElement('nav');nav.id='bottomTabs';nav.setAttribute('aria-label','Navigasi SO');
+ const icons={
+  so:'<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M7.5 9h9M7.5 13h9M7.5 17h5"/>',
+  stock:'<path d="m3.5 8 8.5-4 8.5 4v10l-8.5 4-8.5-4z"/><path d="M3.5 8 12 12l8.5-4M12 12v10"/>',
+  report:'<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h4M10 13h6M10 17h6"/>',
+  calc:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M7 7h10M8 12h2M14 12h2M8 16h2M14 16h2"/>',
+  menu:'<path d="M5 7h14M5 12h14M5 17h14"/>'
+ };
+ const markup=(key,label)=>'<svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">'+icons[key]+'</svg><span class="tab-label">'+label+'</span>';
+ function tab(key,label){const b=document.createElement('button');b.type='button';b.id='nav-'+key;b.innerHTML=markup(key,label);nav.append(b);return b;}
+ const soBtn=tab('so','SO');const stockBtn=tab('stock','Stock');const reportBtn=tab('report','Laporan');
+ const calc=document.getElementById('calcBtn');nav.append(calc);calc.innerHTML=markup('calc','Hitung');calc.setAttribute('aria-label','Hitung');
+ const menuBtn=tab('menu','Menu');menuBtn.setAttribute('aria-expanded','false');
+ document.body.append(backdrop,nav);
+ const close=()=>{top.classList.remove('nav-open');backdrop.hidden=true;menuBtn.classList.remove('active');menuBtn.setAttribute('aria-expanded','false')};
+ function toggleMenu(){const open=!top.classList.contains('nav-open');top.classList.toggle('nav-open',open);backdrop.hidden=!open;menuBtn.classList.toggle('active',open);menuBtn.setAttribute('aria-expanded',String(open));}
+ menuBtn.onclick=toggleMenu;backdrop.onclick=close;
+ bar.addEventListener('click',e=>{if(e.target.closest('button'))close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ const update=()=>{soBtn.classList.toggle('active',!stockEntryMode);stockBtn.classList.toggle('active',!!stockEntryMode);
+   soBtn.setAttribute('aria-current',stockEntryMode?'false':'page');stockBtn.setAttribute('aria-current',stockEntryMode?'page':'false');};
+ soBtn.onclick=()=>{close();if(stockEntryMode)toggleStockEntry();update()};
+ stockBtn.onclick=()=>{close();if(!stockEntryMode)toggleStockEntry();update()};
+ reportBtn.onclick=()=>{close();openReport()};
+ const oldToggle=toggleStockEntry;toggleStockEntry=function(){oldToggle();update()};
+ update();
+ const finder=document.getElementById('search');
+ finder.addEventListener('focus',()=>document.body.classList.add('search-focused'));
+ finder.addEventListener('blur',()=>document.body.classList.remove('search-focused'));
+ // Former FAB focus behavior is neutralized: search remains available just below preview.
+ window.retailScanner?.setSearchExpanded(true,false);
+ // Native scanner resumes itself after reload/visibility via its desired-state lifecycle.
+})();
+</script>
+
+<!-- V5: Scanner + pencarian selalu menetap di atas saat daftar digulir. -->
+<style id="fixed-scanner-v5">
+  #soFixedDock {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 95 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    background: #f8f9fb !important;
+    border-bottom: 1px solid #e6eaee;
+    box-shadow: 0 2px 5px #172d3e0a;
+    isolation: isolate;
+  }
+  #soFixedDock #retailScanner.retail-scanner {
+    flex: 0 0 auto;
+  }
+  #soFixedDock .search-container,
+  #soFixedDock .search-container.search-collapsed,
+  body.so-stock-view #soFixedDock .search-container {
+    flex: 0 0 auto;
+    position: relative !important;
+    inset: auto !important;
+    width: calc(100% - 16px) !important;
+    max-width: 760px !important;
+    margin: 0 auto 7px !important;
+    z-index: 1 !important;
+  }
+  #soDockSpacer {
+    display: block !important;
+    height: var(--so-fixed-height, 200px);
+    width: 100%;
+    pointer-events: none;
+    flex: none;
+  }
+  /* Header nama kolom ikut menempel tepat di bawah kamera + pencarian. */
+  #mainHeader {
+    position: sticky !important;
+    top: var(--so-fixed-height, 200px) !important;
+    z-index: 60 !important;
+  }
+  #selisihFilter {
+    top: calc(var(--so-fixed-height, 200px) + 34px) !important;
+    max-height: min(50dvh, 350px);
+    overflow-y: auto;
+  }
+  /* Navigasi bawah, sheet dan modal tetap di atas konten. */
+  #bottomTabs { z-index: 140 !important; }
+  #navMenuBackdrop { z-index: 130 !important; }
+  body .top.nav-open { z-index: 131 !important; }
+</style>
+<script id="fixed-scanner-v5-logic">
+(function () {
+  'use strict';
+  const scanner = document.getElementById('retailScanner');
+  const search = document.querySelector('.search-container');
+  if (!scanner || !search || document.getElementById('soFixedDock')) return;
+
+  // Bungkus kedua bagian yang harus selalu terlihat dalam satu fixed dock.
+  const dock = document.createElement('div');
+  dock.id = 'soFixedDock';
+  dock.setAttribute('aria-label', 'Scanner dan pencarian');
+  scanner.parentNode.insertBefore(dock, scanner);
+  dock.appendChild(scanner);
+  dock.appendChild(search);
+
+  // Spacer mempertahankan posisi daftar sehingga tidak tertutup scanner.
+  const spacer = document.createElement('div');
+  spacer.id = 'soDockSpacer';
+  spacer.setAttribute('aria-hidden', 'true');
+  dock.insertAdjacentElement('afterend', spacer);
+
+  let height = -1;
+  function syncDockHeight() {
+    const next = Math.ceil(dock.getBoundingClientRect().height);
+    if (next > 0 && next !== height) {
+      height = next;
+      spacer.style.height = next + 'px';
+      document.documentElement.style.setProperty('--so-fixed-height', next + 'px');
+    }
+  }
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(syncDockHeight);
+    observer.observe(dock);
+  }
+  window.addEventListener('resize', syncDockHeight, { passive: true });
+  window.addEventListener('orientationchange', syncDockHeight, { passive: true });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) syncDockHeight(); });
+  syncDockHeight();
+  requestAnimationFrame(syncDockHeight);
 })();
 </script>
 
