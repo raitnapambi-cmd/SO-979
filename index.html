@@ -2155,29 +2155,20 @@ const cameraBox=panel.querySelector('.retail-scanner-camera');
 const target=panel.querySelector('.retail-scanner-target');
 let roiCacheKey='',roiCache=null;
 function getScanROI(vw,vh){
-  // Preview uses object-fit:contain: preserve the complete camera image (no CSS zoom).
-  // The aiming rectangle is kept strictly inside the *visible* video, not the side bars.
+  // Map the visible CSS object-fit:cover preview onto actual video pixels.
+  // Never decode pixels outside the aiming rectangle.
   const bw=cameraBox.clientWidth,bh=cameraBox.clientHeight;
   if(!bw||!bh||!vw||!vh)return null;
   const key=[vw,vh,bw,bh].join(':');
   if(key===roiCacheKey&&roiCache)return roiCache;
-  const scale=Math.min(bw/vw,bh/vh);
-  const displayW=vw*scale,displayH=vh*scale;
-  const offsetX=(bw-displayW)/2,offsetY=(bh-displayH)/2;
-  const guideW=Math.round(Math.min(bw*.88,displayW*.92));
-  const guideH=Math.round(Math.min(bh*.72,displayH*.72));
-  // Override previously authored !important rule with an inline important width/height.
-  target.style.setProperty('width',guideW+'px','important');
-  target.style.setProperty('height',guideH+'px','important');
-  const left=Math.max(offsetX,(bw-guideW)/2+2);
-  const top=Math.max(offsetY,(bh-guideH)/2+2);
-  const right=Math.min(offsetX+displayW,(bw+guideW)/2-2);
-  const bottom=Math.min(offsetY+displayH,(bh+guideH)/2-2);
-  if(right<=left||bottom<=top)return null;
-  const sx=Math.max(0,(left-offsetX)/scale);
-  const sy=Math.max(0,(top-offsetY)/scale);
-  const sw=Math.min(vw-sx,(right-left)/scale);
-  const sh=Math.min(vh-sy,(bottom-top)/scale);
+  const scale=Math.max(bw/vw,bh/vh);
+  const offsetX=(vw*scale-bw)/2,offsetY=(vh*scale-bh)/2;
+  const visibleTargetW=bw*.88,visibleTargetH=bh*.72;
+  const rx=(bw-visibleTargetW)/2,ry=(bh-visibleTargetH)/2;
+  const sx=Math.max(0,(rx+offsetX)/scale);
+  const sy=Math.max(0,(ry+offsetY)/scale);
+  const sw=Math.min(vw-sx,visibleTargetW/scale);
+  const sh=Math.min(vh-sy,visibleTargetH/scale);
   roiCache={sx,sy,sw,sh};roiCacheKey=key;return roiCache;
 }
 function updateStatus(message){status.textContent=message;}
@@ -2276,7 +2267,8 @@ function processCode(code,matched){
  if(!raw||raw.length>80)return;
  const now=performance.now();
  // Debounce satu frame palsu, perlu dua pengamatan stabil yang berdekatan.
- if(candidate!==raw||now-candidateAt>1050){candidate=raw;candidateAt=now;return;}
+ // Accept the first uniquely matched, decoder-validated barcode immediately.
+ // Keep the existing same-barcode lock to prevent duplicate modal opens.
  if(raw===lastAccepted&&(sameBarcodeLocked||now-lastAcceptedAt<450))return;
  lastAccepted=raw;lastAcceptedAt=now;candidate='';sameBarcodeLocked=true;clearSightFrames=0;
  const found=matched||lookup(raw);
@@ -2293,7 +2285,7 @@ function processCode(code,matched){
 async function readFrame(){
  if(!active)return;
  if(busy||!engineReady()||modalSedangTerbuka()||video.readyState<2){
-   frameId=setTimeout(readFrame,260);return;
+   frameId=setTimeout(readFrame,130);return;
  }
  busy=true;
  const began=performance.now();
@@ -2354,7 +2346,7 @@ async function readFrame(){
    if(active){
      const cost=performance.now()-began;
      // Adaptive idle time caps CPU use without making quick devices wait unnecessarily.
-     const idle=Math.max(75,Math.min(230,70+cost*.65));
+     const idle=Math.max(35,Math.min(115,35+cost*.35));
      frameId=setTimeout(readFrame,idle);
    }
  }
@@ -2380,16 +2372,6 @@ async function start(){
   const decoderPromise=loadDecoder().then(()=>null,error=>error);
   stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:960},height:{ideal:540},frameRate:{ideal:24,max:30}}});
   if(document.hidden||!desired){stop();return;}
-  // Prefer 1x hardware zoom if the camera track exposes a supported zoom control.
-  // Not all Android browsers report this, so CSS contain remains the no-crop fallback.
-  const cameraTrack=stream.getVideoTracks()[0];
-  try {
-   const capabilities=cameraTrack?.getCapabilities?.();
-   if(capabilities?.zoom && Number.isFinite(capabilities.zoom.min) && Number.isFinite(capabilities.zoom.max)) {
-    const zoom=Math.max(capabilities.zoom.min,Math.min(1,capabilities.zoom.max));
-    await cameraTrack.applyConstraints({advanced:[{zoom}]});
-   }
-  } catch(e) { /* Browsers without zoom support retain their default camera view. */ }
   video.srcObject=stream;await video.play();
   const decoderError=await decoderPromise;
   if(decoderError)throw decoderError;
@@ -2823,14 +2805,6 @@ body.so-stock-view #list .stock-mode-item .stock-mode-value{min-height:30px!impo
 </style>
 
 
-<!-- V7: no crop/no apparent digital zoom. Camera view retains native angle. -->
-<style id="scanner-nozoom-v7">
- #soFixedDock #retailScanner .retail-scanner-camera video {
-   object-fit: contain !important;
-   object-position: center center !important;
-   transform: none !important;
-   background: #111821 !important;
- }
-</style>
+
 </body>
 </html>
